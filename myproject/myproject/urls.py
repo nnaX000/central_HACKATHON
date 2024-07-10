@@ -18,7 +18,14 @@ Including another URLconf
 from django.urls import path
 
 # from user.views import user_views
-from user.views import signup, user_login
+from user.views import (
+    signup,
+    user_login,
+    logout_view,
+    delete_account_view,
+    mypage,
+    check_user_id,
+)
 from main.views import home
 
 
@@ -26,4 +33,8 @@ urlpatterns = [
     path("signup/", signup, name="signup"),
     path("login/", user_login, name="login"),
     path("home/", home, name="home"),
+    path("logout/", logout_view, name="logout"),
+    path("delete_account/", delete_account_view, name="delete_account"),
+    path("mypage/", mypage, name="mypage"),
+    path("check_user_id/", check_user_id, name="check_user_id"),
 ]

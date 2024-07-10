@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .welcome { margin-bottom: 20px; }
+        .actions button { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div class="welcome">
+        <h1>{{ user.username }}님, 환영합니다!</h1>
+    </div>
+    <div class="actions">
+        <button onclick="location.href='/logout/'">로그아웃</button>
+        <button onclick="location.href='/delete_account/'">회원탈퇴</button>
+        <button onclick="location.href='/bookmarks/'">북마크한 글 보기</button>
+    </div>
+</body>
+</html>

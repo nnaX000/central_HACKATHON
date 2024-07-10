@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page</title>
+    <style>
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #ccc;
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        {% if user.is_authenticated %}
+            <div class="profile-image" style="{% if user.profile.photo and user.profile.photo.url %}background-image: url('{{ user.profile.photo.url }}');{% else %}background-color: #f0f0f0;{% endif %}"></div>
+            <p>{{ user.username }}님, 환영합니다!</p>
+        {% else %}
+            <p>안녕하세요, 방문자님. 로그인 해주세요.</p>
+        {% endif %}
+    </div>    
+</body>
+</html>
