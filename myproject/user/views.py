@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# 회원가입
 @csrf_exempt
 def signup(request):
     if request.method == "POST":
@@ -40,6 +41,7 @@ def signup(request):
     return render(request, "signup.html")
 
 
+# 아이디 중복 검사
 @require_http_methods(["POST"])
 def check_user_id(request):
     data = json.loads(request.body)
@@ -50,6 +52,7 @@ def check_user_id(request):
         return JsonResponse({"user_id_exists": False})
 
 
+# 로그인
 @csrf_exempt
 def user_login(request):
     if request.method == "POST":
