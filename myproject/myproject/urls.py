@@ -18,9 +18,12 @@ Including another URLconf
 from django.urls import path
 
 # from user.views import user_views
-from user.views import signup
+from user.views import signup, user_login
+from main.views import home
 
 
 urlpatterns = [
     path("signup/", signup, name="signup"),
+    path("login/", user_login, name="login"),
+    path("home/", home, name="home"),
 ]

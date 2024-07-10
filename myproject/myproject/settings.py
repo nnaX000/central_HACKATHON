@@ -128,3 +128,10 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",  # 기본 백엔드 유지
+    "user.authentication.UserIDAuthBackend",  # 커스텀 백엔드의 경로를 적절하게 수정
+]
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
