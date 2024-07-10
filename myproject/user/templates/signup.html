@@ -5,57 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign Up</title>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const idInput = document.getElementById('id');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const confirmPasswordInput = document.getElementById('confirm_password');
-    const errorDisplay = document.getElementById('error_message');
+    document.addEventListener("DOMContentLoaded", function() {
+        let idChecked = false;  // ID 검증 상태 추적
 
-    confirmPasswordInput.addEventListener('input', function() {
-        if (passwordInput.value !== confirmPasswordInput.value) {
-            errorDisplay.textContent = 'Passwords do not match!';
-            errorDisplay.style.color = 'red';
-        } else {
-            errorDisplay.textContent = '';
-        }
-    });
+        const idInput = document.getElementById('id');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const errorDisplay = document.getElementById('error_message');
+        const checkIdButton = document.getElementById('check_id');
+        const signupForm = document.getElementById('signup_form');
 
-    document.getElementById('signup_form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/signup/', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.username_error) {
-                alert(data.username_error);
+        confirmPasswordInput.addEventListener('input', function() {
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                errorDisplay.textContent = 'Passwords do not match!';
+                errorDisplay.style.color = 'red';
             } else {
-                window.location.href = '/success/';
+                errorDisplay.textContent = '';
             }
         });
+
+        checkIdButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const user_id = idInput.value;
+            fetch('/check_user_id/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ user_id: user_id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.user_id_exists) {
+                    alert('This user ID already exists.');
+                    idChecked = false;
+                } else {
+                    alert('This user ID is available.');
+                    idChecked = true;
+                }
+            });
+        });
+
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!idChecked) {
+                alert('Please verify your user ID before signing up!');
+                return;
+            }
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                alert('Passwords do not match!');
+                return;
+            }
+            const formData = new FormData(this);
+            fetch('/signup/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.username_error) {
+                    alert(data.username_error);
+                } else {
+                    alert('Welcome!');
+                    window.location.href = '/success/';
+                }
+            });
+        });
     });
-});
-</script>
+</script>    
 </head>
 <body>
-<form id="signup_form" enctype="multipart/form-data">
-    <label for="photo">Profile Photo:</label>
-    <input type="file" id="photo" name="photo"><br>
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username"><br>
-    <label for="id">id:</label>
-    <input type="id" id="id" name="id"><br>
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password"><br>
-    <label for="confirm_password">Confirm Password:</label>
-    <input type="password" id="confirm_password" name="confirm_password"><br>
-    <div id="error_message"></div>
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email"><br>
-    <button type="submit">Sign Up</button>
-</form>
+    <h1>회원가입</h1>
+    <form id="signup_form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="id">User ID:</label>
+        <input type="text" id="id" name="id" required><button id="check_id">Check ID</button><br>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" id="confirm_password" required><br>
+        <label for="photo">Photo:</label>
+        <input type="file" id="photo" name="photo"><br>
+        <button type="submit">Signup</button>
+    </form>
+    <p id="error_message"></p>
 </body>
 </html>
