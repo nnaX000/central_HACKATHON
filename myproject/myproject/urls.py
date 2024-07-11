@@ -30,12 +30,10 @@ from main.views import home
 from character.views import (
     game,
     create_character,
-    complete_action,
     action_eating,
     action_cleaning,
     action_walking,
     action_washing,
-    handle_action,
     update_action,
     finalize_action,
 )
@@ -53,7 +51,6 @@ urlpatterns = [
     path("game/<int:id>/", game, name="game"),
     path("game/", game, name="game"),
     path("create/", create_character, name="create_character"),
-    path("complete_action/<int:id>/", complete_action, name="complete_action"),
     path("character/<int:id>/eating/", action_eating, name="action_eating"),
     path("character/<int:id>/cleaning/", action_cleaning, name="action_cleaning"),
     path("character/<int:id>/walking/", action_walking, name="action_walking"),

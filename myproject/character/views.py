@@ -4,6 +4,7 @@ from .forms import CharacterForm, ActionForm
 from django.contrib import messages
 
 
+# 게임홈화면
 def game(request, id=None):
     if id:
         characters = [Character.objects.get(id=id)]
@@ -13,6 +14,7 @@ def game(request, id=None):
     return render(request, "game.html", {"characters": characters})
 
 
+# 캐릭터 생성
 def create_character(request):
     existing_character = Character.objects.filter(gauge__lt=100).first()
     if existing_character:
@@ -28,6 +30,7 @@ def create_character(request):
     return render(request, "create_character.html", {"form": form})
 
 
+# 액션 리스트
 def get_action_label(action):
     return {
         "eating": "밥 먹기",
@@ -37,35 +40,19 @@ def get_action_label(action):
     }[action]
 
 
-def complete_action(request, id):
+# update_action페이지까지 가는 함수
+def update_action(request, id):
     character = Character.objects.get(id=id)
-    character.gauge = 0  # Reset gauge
-    character.save()
-    return render(request, "complete_action.html", {"character": character})
+    return render(request, "update_action.html", {"character": character})
 
 
-def action_eating(request, id):
-    return handle_action(request, id, "eating", "밥 먹기")
-
-
-def action_cleaning(request, id):
-    return handle_action(request, id, "cleaning", "청소하기")
-
-
-def action_walking(request, id):
-    return handle_action(request, id, "walking", "산책하기")
-
-
-def action_washing(request, id):
-    return handle_action(request, id, "washing", "씻기")
-
-
+# update_action페이지 안에서 행동 페이지로 가는 함수
 def handle_action(request, id, action, action_name):
     character = Character.objects.get(id=id)
     if request.method == "POST":
         detail = request.POST.get("detail")
         character.current_action = f"{action_name}: {detail}"
-        character.gauge += 5
+        character.gauge += 100
         character.save()
         if character.gauge >= 100:
             return redirect("game", id=character.id)
@@ -77,21 +64,27 @@ def handle_action(request, id, action, action_name):
     )
 
 
-def update_action(request, id):
-    character = Character.objects.get(id=id)
-    if request.method == "POST":
-        action = request.POST.get("action")
-        detail = request.POST.get("detail")
-        action_label = get_action_label(action)
-        character.current_action = f"{action_label}: {detail}"
-        character.gauge += 100
-        character.save()
-        if character.gauge >= 100:
-            return redirect("complete_action", id=character.id)
-        return redirect("game")
-    return render(request, "update_action.html", {"character": character})
+# 먹기
+def action_eating(request, id):
+    return handle_action(request, id, "eating", "밥 먹기")
 
 
+# 청소하기
+def action_cleaning(request, id):
+    return handle_action(request, id, "cleaning", "청소하기")
+
+
+# 걷기
+def action_walking(request, id):
+    return handle_action(request, id, "walking", "산책하기")
+
+
+# 씻기
+def action_washing(request, id):
+    return handle_action(request, id, "washing", "씻기")
+
+
+# 캐릭터 행동하기
 def finalize_action(request, id):
     character = Character.objects.get(id=id)
     if request.method == "POST":
