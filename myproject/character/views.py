@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, HttpResponse
 from .models import Character
 from .forms import CharacterForm, ActionForm
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 
 
 # 게임홈화면
@@ -14,17 +15,18 @@ def game(request, id=None):
     return render(request, "game.html", {"characters": characters})
 
 
-# 캐릭터 생성
+# 캐릭터 생성/form data
+@csrf_exempt
 def create_character(request):
-    existing_character = Character.objects.filter(gauge__lt=100).first()
-    if existing_character:
-        return HttpResponse("이미 활동 중인 캐릭터가 있습니다. 게이지를 완료하세요.")
-
     if request.method == "POST":
         form = CharacterForm(request.POST)
         if form.is_valid():
-            form.save()
+            instance = form.save(commit=False)
+            print("Saving character: ", instance.__dict__)
+            instance.save()
             return redirect("game")
+        else:
+            print("Form errors: ", form.errors)
     else:
         form = CharacterForm()
     return render(request, "create_character.html", {"form": form})
@@ -46,13 +48,13 @@ def update_action(request, id):
     return render(request, "update_action.html", {"character": character})
 
 
-# update_action페이지 안에서 행동 페이지로 가는 함수
+# update_action페이지 안에서 행동 페이지로 가는 함수/form data
 def handle_action(request, id, action, action_name):
     character = Character.objects.get(id=id)
     if request.method == "POST":
         detail = request.POST.get("detail")
         character.current_action = f"{action_name}: {detail}"
-        character.gauge += 100
+        character.gauge += 5
         character.save()
         if character.gauge >= 100:
             return redirect("game", id=character.id)
@@ -84,7 +86,7 @@ def action_washing(request, id):
     return handle_action(request, id, "washing", "씻기")
 
 
-# 캐릭터 행동하기
+# 캐릭터 행동하기/form data
 def finalize_action(request, id):
     character = Character.objects.get(id=id)
     if request.method == "POST":
