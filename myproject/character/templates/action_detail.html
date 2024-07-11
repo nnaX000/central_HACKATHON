@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detail Input for {{ action_name }}</title>
+</head>
+<body>
+    <h1>{{ action_name }} 상세 입력 - {{ character.name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="detail">{{ action_name }} 상세 정보:</label>
+        <input type="text" name="detail" id="detail">
+        <button type="submit">저장</button>
+    </form>
+</body>
+</html>

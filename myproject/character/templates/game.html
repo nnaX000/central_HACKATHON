@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game</title>
+</head>
+<body>
+    <h1>Character List</h1>
+    {% if characters %}
+        {% for character in characters %}
+            <p>{{ character.name }} - Current Action: {{ character.current_action }} - Gauge: {{ character.gauge }}</p>
+            {% if character.gauge >= 100 %}
+                <a href="{% url 'finalize_action' character.id %}">행동하기</a>
+            {% endif %}
+            <a href="{% url 'update_action' character.id %}">Update Action</a>
+        {% endfor %}
+    {% else %}
+        <a href="{% url 'create_character' %}">Create New Character</a>
+    {% endif %}
+</body>
+</html>
+
