@@ -1,0 +1,22 @@
+{% for post in posts %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <h2 class="card-title">{{ post.title }}</h2>
+            <p class="card-text">{{ post.content }}</p>
+            <p>Likes: {{ post.total_likes }}</p>
+            <p>Bookmarks: {{ post.total_bookmarks }}</p>
+            <a href="{% url 'like_post' post.id %}" class="btn btn-primary">Like</a>
+            <a href="{% url 'bookmark_post' post.id %}" class="btn btn-info">
+                {% if request.user in post.bookmarks.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </a>
+            {% if request.user == post.author %}
+                <a href="{% url 'post_update' post.id %}" class="btn btn-secondary">Edit</a>
+                <a href="{% url 'post_delete' post.id %}" class="btn btn-danger">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}

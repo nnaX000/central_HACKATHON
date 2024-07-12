@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "character",
     "main",
     "myproject",
+    "post",
 ]
 
 MIDDLEWARE = [
