@@ -16,6 +16,8 @@ Including another URLconf
 """
 
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 # from user.views import user_views
 from user.views import (
@@ -25,6 +27,11 @@ from user.views import (
     delete_account_view,
     mypage,
     check_user_id,
+    password_reset_request,
+    password_reset_confirm,
+    profile_view,
+    profile_edit,
+    personal_info_edit,
 )
 from main.views import home
 from character.views import (
@@ -40,13 +47,24 @@ from character.views import (
 
 
 urlpatterns = [
+    # account
     path("signup/", signup, name="signup"),
     path("login/", user_login, name="login"),
     path("", home, name="home"),
-    path("logout/", logout_view, name="logout"),
-    path("delete_account/", delete_account_view, name="delete_account"),
     path("mypage/", mypage, name="mypage"),
     path("check_user_id/", check_user_id, name="check_user_id"),
+    path("password_reset/", password_reset_request, name="password_reset_request"),
+    path(
+        "password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"
+    ),
+    # ----------------------------------------------------------------------------------
+    # mypage
+    path("profile/", profile_view, name="profile"),
+    path("profile/edit/", profile_edit, name="profile_edit"),
+    path("personal_info/edit/", personal_info_edit, name="personal_info_edit"),
+    path("logout/", logout_view, name="logout"),
+    path("delete_account/", delete_account_view, name="delete_account"),
+    # ---------------------------------------------------------------------------------
     # character
     path("game/<int:id>/", game, name="game"),
     path("game/", game, name="game"),
@@ -58,7 +76,7 @@ urlpatterns = [
     path("update_action/<int:id>/", update_action, name="update_action"),
     path("character/<int:id>/finalize/", finalize_action, name="finalize_action"),
     # ---------------------------------------------------------------------------------
-    #post
-    path('post/', include('post.urls')),
+    # post
+    path("post/", include("post.urls")),
     # ----------------------------------------
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

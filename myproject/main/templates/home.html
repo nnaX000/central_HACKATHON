@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>Main Page</title>
@@ -17,7 +17,15 @@
 <body>
     <div>
         {% if user.is_authenticated %}
-            <div class="profile-image" style="{% if user.profile.photo and user.profile.photo.url %}background-image: url('{{ user.profile.photo.url }}');{% else %}background-color: #f0f0f0;{% endif %}"></div>
+            <div class="profile-image" 
+                 style="
+                    {% if user.photo %}
+                        background-image: url('{{ user.photo.url }}');
+                    {% else %}
+                        background-color: #f0f0f0;
+                    {% endif %}
+                 ">
+            </div>
             <p>{{ user.username }}님, 환영합니다!</p>
         {% else %}
             <p>안녕하세요, 방문자님. 로그인 해주세요.</p>
@@ -25,3 +33,4 @@
     </div>    
 </body>
 </html>
+
