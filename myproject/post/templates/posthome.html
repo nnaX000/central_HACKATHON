@@ -1,10 +1,16 @@
+<!-- Sorting Links -->
+<div class="sorting">
+    <a href="?sort=date" class="btn btn-secondary {% if sort_by == 'date' %}active{% endif %}">Sort by Date</a>
+    <a href="?sort=likes" class="btn btn-secondary {% if sort_by == 'likes' %}active{% endif %}">Sort by Likes</a>
+</div>
+
 {% for post in posts %}
     <div class="card mb-2">
         <div class="card-body">
             <h2 class="card-title">{{ post.title }}</h2>
             <p class="card-text">{{ post.content }}</p>
-            <p>Likes: {{ post.total_likes }}</p>
-            <p>Bookmarks: {{ post.total_bookmarks }}</p>
+            <p>Likes: {{ post.total_likes }}</p> <!-- property 사용 -->
+            <p>Bookmarks: {{ post.total_bookmarks }}</p> <!-- property 사용 -->
             <a href="{% url 'like_post' post.id %}" class="btn btn-primary">Like</a>
             <a href="{% url 'bookmark_post' post.id %}" class="btn btn-info">
                 {% if request.user in post.bookmarks.all %}

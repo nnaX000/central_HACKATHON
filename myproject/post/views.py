@@ -4,8 +4,13 @@ from .models import Post
 from .forms import PostForm
 
 def posthome(request):
-    posts = Post.objects.all()
-    return render(request, 'posthome.html', {'posts': posts})
+    sort_by = request.GET.get('sort', 'date')
+    if sort_by == 'likes':
+        posts = sorted(Post.objects.all(), key=lambda post: post.total_likes, reverse=True)
+    else:
+        posts = Post.objects.all().order_by('-date_posted')
+    
+    return render(request, 'posthome.html', {'posts': posts, 'sort_by': sort_by})
 
 @login_required
 def post_create(request):
@@ -61,6 +66,12 @@ def bookmarked_posts(request):
     user = request.user
     posts = Post.objects.filter(bookmarks=user).order_by('-date_posted')
     return render(request, 'bookmarked_posts.html', {'posts': posts})
+
+@login_required
+def user_posts(request):
+    user = request.user
+    posts = Post.objects.filter(author=user).order_by('-date_posted')
+    return render(request, 'user_posts.html', {'posts': posts})
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
