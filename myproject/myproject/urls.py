@@ -30,7 +30,6 @@ from user.views import (
     check_user_id,
     password_reset_request,
     password_reset_confirm,
-    profile_view,
     profile_edit,
     personal_info_edit,
 )
@@ -44,6 +43,8 @@ from character.views import (
     action_washing,
     update_action,
     finalize_action,
+    diary_entry,
+    view_diaries,
 )
 
 
@@ -55,17 +56,16 @@ urlpatterns = [
     path("", home, name="home"),
     path("mypage/", mypage, name="mypage"),
     path("check_user_id/", check_user_id, name="check_user_id"),
-    path("password_reset/", password_reset_request, name="password_reset_request"),
-    path(
-        "password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"
-    ),
     # ----------------------------------------------------------------------------------
     # mypage
-    path("profile/", profile_view, name="profile"),
     path("profile/edit/", profile_edit, name="profile_edit"),
     path("personal_info/edit/", personal_info_edit, name="personal_info_edit"),
     path("logout/", logout_view, name="logout"),
     path("delete_account/", delete_account_view, name="delete_account"),
+    path("password_reset/", password_reset_request, name="password_reset_request"),
+    path(
+        "password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"
+    ),
     # ---------------------------------------------------------------------------------
     # character
     path("game/<int:id>/", game, name="game"),
@@ -77,6 +77,8 @@ urlpatterns = [
     path("character/<int:id>/washing/", action_washing, name="action_washing"),
     path("update_action/<int:id>/", update_action, name="update_action"),
     path("character/<int:id>/finalize/", finalize_action, name="finalize_action"),
+    path("diary/entry/", diary_entry, name="diary_entry"),
+    path("diary/view/", view_diaries, name="view_diaries"),
     # ---------------------------------------------------------------------------------
     # post
     path("post/", include("post.urls")),

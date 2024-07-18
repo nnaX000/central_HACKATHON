@@ -1,0 +1,20 @@
+<!-- view_diaries.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>지금까지 쓴 일기</title>
+</head>
+<body>
+    <h1>지금까지 쓴 일기</h1>
+    {% for diary in diaries %}
+        <div>
+            <h3>{{ diary.date }}</h3>
+            <p>{{ diary.content }}</p>
+            <p>날씨: {{ diary.get_weather_display }}</p>
+            <p>일어난 시간: {{ diary.wake_up_time }}</p>
+            <p>잠든 시간: {{ diary.sleep_time }}</p>
+        </div>
+    {% endfor %}
+</body>
+</html>

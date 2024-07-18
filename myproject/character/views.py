@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, HttpResponse
-from .models import Character
+from .models import Character, Diary
 from .forms import CharacterForm, ActionForm
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 
 # 게임홈화면
@@ -100,3 +102,33 @@ def finalize_action(request, id):
         return redirect("game")
     else:
         return render(request, "finalize_action.html", {"character": character})
+
+
+# 일기 등록
+def diary_entry(request):
+    if request.method == "POST":
+        try:
+            diary = Diary(
+                user=request.user,
+                content=request.POST.get("content"),
+                date=datetime.strptime(request.POST.get("date"), "%Y-%m-%d").date(),
+                weather=request.POST.get("weather"),
+                wake_up_time=datetime.strptime(
+                    request.POST.get("wake_up_time"), "%H:%M"
+                ).time(),
+                sleep_time=datetime.strptime(
+                    request.POST.get("sleep_time"), "%H:%M"
+                ).time(),
+            )
+            diary.save()
+            return redirect("view_diaries")
+        except Exception as e:
+            return HttpResponse(f"Error: {e}")
+    return render(request, "diary_entry.html")
+
+
+# 일기 보기
+@login_required
+def view_diaries(request):
+    diaries = Diary.objects.filter(user=request.user)
+    return render(request, "view_diary.html", {"diaries": diaries})

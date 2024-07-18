@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 def signup(request):
     if request.method == "POST":
-        user_id = request.POST.get("id")
+        user_id = request.POST.get("user_id")
         username = request.POST.get("username")
         password = request.POST.get("password")
         email = request.POST.get("email")
