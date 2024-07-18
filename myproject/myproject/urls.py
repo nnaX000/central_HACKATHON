@@ -43,6 +43,8 @@ from character.views import (
     action_washing,
     update_action,
     finalize_action,
+    diary_entry,
+    view_diaries,
 )
 
 
@@ -75,6 +77,8 @@ urlpatterns = [
     path("character/<int:id>/washing/", action_washing, name="action_washing"),
     path("update_action/<int:id>/", update_action, name="update_action"),
     path("character/<int:id>/finalize/", finalize_action, name="finalize_action"),
+    path("diary/entry/", diary_entry, name="diary_entry"),
+    path("diary/view/", view_diaries, name="view_diaries"),
     # ---------------------------------------------------------------------------------
     # post
     path("post/", include("post.urls")),
