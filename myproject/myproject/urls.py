@@ -18,6 +18,7 @@ Including another URLconf
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 
 # from user.views import user_views
 from user.views import (
@@ -48,6 +49,7 @@ from character.views import (
 
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     # account
     path("signup/", signup, name="signup"),
     path("login/", user_login, name="login"),
@@ -80,5 +82,8 @@ urlpatterns = [
     # ---------------------------------------------------------------------------------
     # post
     path("post/", include("post.urls")),
+    # ----------------------------------------
+    # board
+    path("board/", include("board.urls")),
     # ----------------------------------------
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

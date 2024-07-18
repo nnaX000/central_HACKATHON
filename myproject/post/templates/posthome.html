@@ -4,21 +4,43 @@
     <a href="?sort=likes" class="btn btn-secondary {% if sort_by == 'likes' %}active{% endif %}">Sort by Likes</a>
 </div>
 
+<!-- Category Links -->
+<div class="categories">
+    <a href="?category=latest" class="btn btn-secondary {% if category == 'latest' %}active{% endif %}">Latest Posts</a>
+    <a href="?category=my_posts" class="btn btn-secondary {% if category == 'my_posts' %}active{% endif %}">My Posts</a>
+    <a href="?category=liked_posts" class="btn btn-secondary {% if category == 'liked_posts' %}active{% endif %}">Liked Posts</a>
+</div>
+
 {% for post in posts %}
     <div class="card mb-2">
         <div class="card-body">
-            <h2 class="card-title">{{ post.title }}</h2>
+            <!-- 게시글 ID 추가 -->
+            <p>ID: {{ post.id }}</p>
+            <a href="{% url 'post_detail' post.id %}" class="card-link">
+                <h2 class="card-title">{{ post.title }}</h2>
+            </a>
+            {% if post.image %}
+                <img src="{{ post.image.url }}" class="img-fluid" alt="{{ post.title }}">
+            {% endif %}
             <p class="card-text">{{ post.content }}</p>
-            <p>Likes: {{ post.total_likes }}</p> <!-- property 사용 -->
-            <p>Bookmarks: {{ post.total_bookmarks }}</p> <!-- property 사용 -->
-            <a href="{% url 'like_post' post.id %}" class="btn btn-primary">Like</a>
+            <p>Likes: {{ post.total_likes }}</p>
+            
+            <a href="{% url 'like_post' post.id %}" class="btn btn-primary">
+                {% if request.user in post.likes.all %}
+                Unlike
+                {% else %}
+                Like
+                {% endif %}
+            </a>
+            {% comment %} 
             <a href="{% url 'bookmark_post' post.id %}" class="btn btn-info">
                 {% if request.user in post.bookmarks.all %}
                     Unbookmark
                 {% else %}
                     Bookmark
                 {% endif %}
-            </a>
+            </a> 
+            {% endcomment %}
             {% if request.user == post.author %}
                 <a href="{% url 'post_update' post.id %}" class="btn btn-secondary">Edit</a>
                 <a href="{% url 'post_delete' post.id %}" class="btn btn-danger">Delete</a>
