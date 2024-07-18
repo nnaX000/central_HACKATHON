@@ -4,30 +4,69 @@
     <meta charset="UTF-8">
     <title>{{ post.title }}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
         <h1>{{ post.title }}</h1>
         <p>작성자: {{ post.author.username }}</p>
         <p>작성일: {{ post.date_posted|date:"Y-m-d H:i" }}</p>
+        {% if post.image %}
+            <div class="mb-3">
+                <img src="{{ post.image.url }}" class="img-fluid" alt="{{ post.title }}">
+            </div>
+        {% endif %}
         <div class="content">
             <p>{{ post.content }}</p>
         </div>
         <div class="actions">
-            <a href="{% url 'like_post' post.id %}" class="btn btn-primary">Like ({{ post.total_likes }})</a>
+            <button id="like-btn" class="btn btn-primary">
+                {% if request.user in post.likes.all %}
+                Unlike
+                {% else %}
+                Like
+                {% endif %}
+            </button>
+            <p id="total-likes">{{ post.likes.count }}</p>
+            {% comment %} 
             <a href="{% url 'bookmark_post' post.id %}" class="btn btn-info">
                 {% if request.user in post.bookmarks.all %}
                     Unbookmark
                 {% else %}
                     Bookmark
                 {% endif %}
-            </a>
+            </a> 
+            {% endcomment %}
             {% if request.user == post.author %}
                 <a href="{% url 'post_update' post.id %}" class="btn btn-secondary">Edit</a>
                 <a href="{% url 'post_delete' post.id %}" class="btn btn-danger">Delete</a>
             {% endif %}
         </div>
-        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
+        <a href="{% url 'posthome' %}" class="btn btn-secondary">Back to Home</a>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            $('#like-btn').click(function(e){
+                e.preventDefault();
+                var postId = "{{ post.id }}";
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'like_post' post.id %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response){
+                        if(response.liked){
+                            $('#like-btn').text('Unlike');
+                        } else {
+                            $('#like-btn').text('Like');
+                        }
+                        $('#total-likes').text(response.total_likes);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

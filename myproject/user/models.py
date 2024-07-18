@@ -1,21 +1,14 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
-)
 from django.core.files.storage import FileSystemStorage
-
+from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, user_id, username, email, password=None, **extra_fields):
         if not user_id:
             raise ValueError("The User ID must be set")
         email = self.normalize_email(email)
-        user = self.model(
-            user_id=user_id, username=username, email=email, **extra_fields
-        )
+        user = self.model(user_id=user_id, username=username, email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -31,9 +24,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(user_id, username, email, password, **extra_fields)
 
-
 photo_storage = FileSystemStorage(location="myproject/media", base_url="/media")
-
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     user_id = models.CharField(max_length=255, unique=True, default="default_user_id")
@@ -50,3 +41,23 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    age = models.PositiveIntegerField(null=True, blank=True)
+
+# User 생성 시 Profile 자동 생성
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=CustomUser)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=CustomUser)
+def save_user_profile(sender, instance, **kwargs):
+    try:
+        instance.profile.save()
+    except Profile.DoesNotExist:
+        Profile.objects.create(user=instance)
