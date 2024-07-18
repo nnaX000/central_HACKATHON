@@ -29,7 +29,6 @@ from user.views import (
     check_user_id,
     password_reset_request,
     password_reset_confirm,
-    profile_view,
     profile_edit,
     personal_info_edit,
 )
@@ -55,17 +54,16 @@ urlpatterns = [
     path("", home, name="home"),
     path("mypage/", mypage, name="mypage"),
     path("check_user_id/", check_user_id, name="check_user_id"),
-    path("password_reset/", password_reset_request, name="password_reset_request"),
-    path(
-        "password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"
-    ),
     # ----------------------------------------------------------------------------------
     # mypage
-    path("profile/", profile_view, name="profile"),
     path("profile/edit/", profile_edit, name="profile_edit"),
     path("personal_info/edit/", personal_info_edit, name="personal_info_edit"),
     path("logout/", logout_view, name="logout"),
     path("delete_account/", delete_account_view, name="delete_account"),
+    path("password_reset/", password_reset_request, name="password_reset_request"),
+    path(
+        "password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"
+    ),
     # ---------------------------------------------------------------------------------
     # character
     path("game/<int:id>/", game, name="game"),
