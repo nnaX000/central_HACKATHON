@@ -1,134 +1,79 @@
-from django.shortcuts import render, redirect, HttpResponse
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .models import Character, Diary
-from .forms import CharacterForm, ActionForm
-from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from datetime import datetime
+from .serializers import CharacterSerializer, DiarySerializer, ActionSerializer
+from django.shortcuts import get_object_or_404
 
 
-# 게임홈화면
-def game(request, id=None):
-    if id:
-        characters = [Character.objects.get(id=id)]
-    else:
-        characters = Character.objects.all()
+class CharacterViewSet(viewsets.ModelViewSet):
+    queryset = Character.objects.all()
+    serializer_class = CharacterSerializer
+    permission_classes = [IsAuthenticated]
 
-    return render(request, "game.html", {"characters": characters})
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-
-# 캐릭터 생성/form data
-@csrf_exempt
-def create_character(request):
-    if request.method == "POST":
-        form = CharacterForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            print("Saving character: ", instance.__dict__)
-            instance.save()
-            return redirect("game")
-        else:
-            print("Form errors: ", form.errors)
-    else:
-        form = CharacterForm()
-    return render(request, "create_character.html", {"form": form})
+    def get_queryset(self):
+        return Character.objects.filter(user=self.request.user)
 
 
-# 액션 리스트
-def get_action_label(action):
-    return {
-        "eating": "밥 먹기",
-        "cleaning": "청소하기",
-        "walking": "산책하기",
-        "washing": "씻기",
-    }[action]
+class DiaryViewSet(viewsets.ModelViewSet):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return Diary.objects.filter(user=self.request.user)
 
 
-# update_action페이지까지 가는 함수
-def update_action(request, id):
-    character = Character.objects.get(id=id)
-    return render(request, "update_action.html", {"character": character})
+class ActionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, character_id):
+        character = get_object_or_404(Character, id=character_id, user=request.user)
+        serializer = ActionSerializer(data=request.data)
+        if serializer.is_valid():
+            action = serializer.validated_data["action_type"]
+            detail = serializer.validated_data["detail"]
+            character.current_action = f"{action}: {detail}"
+            character.gauge += 5
+            character.save()
+            if character.gauge >= 100:
+                return Response({"message": "Gauge is full"}, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# update_action페이지 안에서 행동 페이지로 가는 함수/form data
-def handle_action(request, id, action, action_name):
-    character = Character.objects.get(id=id)
-    if request.method == "POST":
-        detail = request.POST.get("detail")
-        character.current_action = f"{action_name}: {detail}"
-        character.gauge += 5
-        character.save()
-        if character.gauge >= 100:
-            return redirect("game", id=character.id)
-        return redirect("game")
-    return render(
-        request,
-        "action_detail.html",
-        {"character": character, "action_name": action_name},
-    )
+class FinalizeActionView(APIView):
+    permission_classes = [IsAuthenticated]
 
-
-# 먹기
-def action_eating(request, id):
-    return handle_action(request, id, "eating", "밥 먹기")
-
-
-# 청소하기
-def action_cleaning(request, id):
-    return handle_action(request, id, "cleaning", "청소하기")
-
-
-# 걷기
-def action_walking(request, id):
-    return handle_action(request, id, "walking", "산책하기")
-
-
-# 씻기
-def action_washing(request, id):
-    return handle_action(request, id, "washing", "씻기")
-
-
-# 캐릭터 행동하기/form data
-def finalize_action(request, id):
-    character = Character.objects.get(id=id)
-    if request.method == "POST":
-        final_action = request.POST.get("final_action")
-        character.final_action = final_action
-        character.save()
-        character.delete()  # 캐릭터 삭제
-        messages.success(
-            request, "활기찬 캐릭터가 완성되었네요! 새로운 캐릭터로 활동해볼까요?"
-        )
-        return redirect("game")
-    else:
-        return render(request, "finalize_action.html", {"character": character})
-
-
-# 일기 등록
-def diary_entry(request):
-    if request.method == "POST":
-        try:
-            diary = Diary(
-                user=request.user,
-                content=request.POST.get("content"),
-                date=datetime.strptime(request.POST.get("date"), "%Y-%m-%d").date(),
-                weather=request.POST.get("weather"),
-                wake_up_time=datetime.strptime(
-                    request.POST.get("wake_up_time"), "%H:%M"
-                ).time(),
-                sleep_time=datetime.strptime(
-                    request.POST.get("sleep_time"), "%H:%M"
-                ).time(),
+    def post(self, request, character_id):
+        character = get_object_or_404(Character, id=character_id, user=request.user)
+        final_action = request.data.get("final_action")
+        if final_action:
+            character.final_action = final_action
+            character.save()
+            character.delete()  # 캐릭터 삭제
+            return Response(
+                {"message": "Character finalized and deleted"},
+                status=status.HTTP_200_OK,
             )
-            diary.save()
-            return redirect("view_diaries")
-        except Exception as e:
-            return HttpResponse(f"Error: {e}")
-    return render(request, "diary_entry.html")
+        return Response(
+            {"error": "Final action not provided"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
-# 일기 보기
-@login_required
-def view_diaries(request):
-    diaries = Diary.objects.filter(user=request.user)
-    return render(request, "view_diary.html", {"diaries": diaries})
+class DiaryEntryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = DiarySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

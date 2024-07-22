@@ -35,18 +35,7 @@ from user.views import (
     PersonalInfoEditView,
 )
 from main.views import home
-from character.views import (
-    game,
-    create_character,
-    action_eating,
-    action_cleaning,
-    action_walking,
-    action_washing,
-    update_action,
-    finalize_action,
-    diary_entry,
-    view_diaries,
-)
+from character.views import ActionView, FinalizeActionView, DiaryEntryView
 
 
 urlpatterns = [
@@ -75,17 +64,17 @@ urlpatterns = [
     ),
     # ---------------------------------------------------------------------------------
     # character
-    path("game/<int:id>/", game, name="game"),
-    path("game/", game, name="game"),
-    path("create/", create_character, name="create_character"),
-    path("character/<int:id>/eating/", action_eating, name="action_eating"),
-    path("character/<int:id>/cleaning/", action_cleaning, name="action_cleaning"),
-    path("character/<int:id>/walking/", action_walking, name="action_walking"),
-    path("character/<int:id>/washing/", action_washing, name="action_washing"),
-    path("update_action/<int:id>/", update_action, name="update_action"),
-    path("character/<int:id>/finalize/", finalize_action, name="finalize_action"),
-    path("diary/entry/", diary_entry, name="diary_entry"),
-    path("diary/view/", view_diaries, name="view_diaries"),
+    path(
+        "characters/<int:character_id>/action/",
+        ActionView.as_view(),
+        name="character_action",
+    ),
+    path(
+        "characters/<int:character_id>/finalize/",
+        FinalizeActionView.as_view(),
+        name="finalize_action",
+    ),
+    path("diary-entry/", DiaryEntryView.as_view(), name="diary_entry"),
     # ---------------------------------------------------------------------------------
     # post
     path("post/", include("post.urls")),

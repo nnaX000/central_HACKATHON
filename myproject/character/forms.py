@@ -3,17 +3,19 @@ from .models import Character
 
 
 class CharacterForm(forms.ModelForm):
-    GENDER_CHOICES = [
-        ("male", "남자"),
-        ("female", "여자"),
-        ("unspecified", "선택 안함"),
+    CHARACTER_CHOICES = [
+        ("dol", "돌고래"),
+        ("ang", "앵무새"),
+        ("da", "다람쥐"),
     ]
-
-    gender = forms.ChoiceField(choices=GENDER_CHOICES, widget=forms.RadioSelect)
+    character_type = forms.ChoiceField(
+        choices=CHARACTER_CHOICES, widget=forms.RadioSelect
+    )
+    name = forms.CharField(max_length=100)
 
     class Meta:
         model = Character
-        fields = ["name", "age", "gender", "current_action"]
+        fields = ["name", "character_type"]
 
 
 class ActionForm(forms.Form):

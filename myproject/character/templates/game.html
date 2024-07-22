@@ -5,8 +5,7 @@
 </head>
 <body>
     <h1>Character List</h1>
-    {% if characters %}
-        {% for character in characters %}
+        {% if characters %}
             <div style="margin-bottom: 20px;">
                 <img src="{{ character.image_url }}" alt="{{ character.name }}" style="width:100px; height:100px;"><br>
                 <p>{{ character.name }} - Current Action: {{ character.current_action }} - Gauge: {{ character.gauge }}</p>
@@ -24,10 +23,15 @@
                     <button type="submit" name="action_type" value="washing">씻기</button>
                 </form>
             </div>
-        {% endfor %}
-    {% else %}
-        <a href="{% url 'create_character' %}">Create New Character</a>
-    {% endif %}
+            <div style="margin-bottom: 20px;">
+                <p>{{ character.name }} - Character Type: {{ character.character_type }}</p>
+                <form action="{% url 'change_character' %}" method="get">
+                    <button type="submit">캐릭터 변경</button>
+                </form>
+            </div>
+        {% else %}
+            <a href="{% url 'create_character' %}">Create New Character</a>
+        {% endif %}
 </body>
 </html>
 

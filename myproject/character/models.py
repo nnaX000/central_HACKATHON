@@ -1,15 +1,23 @@
 from django.db import models
 from django import forms
 from django.conf import settings
+from django.contrib.auth.models import User
 
 
 class Character(models.Model):
+    CHARACTER_CHOICES = [
+        ("dol", "돌고래"),
+        ("ang", "앵무새"),
+        ("da", "다람쥐"),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True
+    )
     name = models.CharField(max_length=100)
-    age = models.IntegerField()
-    gender = models.CharField(max_length=50)
-    current_action = models.CharField(max_length=200, blank=True)
-    gauge = models.IntegerField(default=0)
-    final_action = models.TextField(blank=True)  # 추가
+    character_type = models.CharField(
+        max_length=100, choices=CHARACTER_CHOICES, blank=True, null=True
+    )
 
     def __str__(self):
         return self.name
