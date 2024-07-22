@@ -22,16 +22,17 @@ from django.contrib import admin
 
 # from user.views import user_views
 from user.views import (
-    signup,
-    user_login,
-    logout_view,
-    delete_account_view,
-    mypage,
-    check_user_id,
-    password_reset_request,
-    password_reset_confirm,
-    profile_edit,
-    personal_info_edit,
+    SignupView,
+    LoginView,
+    MyPageView,
+    CheckUserIDView,
+    LogoutView,
+    BookmarksView,
+    DeleteAccountView,
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
+    ProfileEditView,
+    PersonalInfoEditView,
 )
 from main.views import home
 from character.views import (
@@ -49,22 +50,28 @@ from character.views import (
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     # account
-    path("signup/", signup, name="signup"),
-    path("login/", user_login, name="login"),
-    path("", home, name="home"),
-    path("mypage/", mypage, name="mypage"),
-    path("check_user_id/", check_user_id, name="check_user_id"),
-    # ----------------------------------------------------------------------------------
-    # mypage
-    path("profile/edit/", profile_edit, name="profile_edit"),
-    path("personal_info/edit/", personal_info_edit, name="personal_info_edit"),
-    path("logout/", logout_view, name="logout"),
-    path("delete_account/", delete_account_view, name="delete_account"),
-    path("password_reset/", password_reset_request, name="password_reset_request"),
+    path("signup/", SignupView.as_view(), name="signup"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("mypage/", MyPageView.as_view(), name="mypage"),
+    path("check_user_id/", CheckUserIDView.as_view(), name="check_user_id"),
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("bookmarks/", BookmarksView.as_view(), name="bookmarks"),
+    path("delete-account/", DeleteAccountView.as_view(), name="delete_account"),
     path(
-        "password_reset_confirm/", password_reset_confirm, name="password_reset_confirm"
+        "password-reset-request/",
+        PasswordResetRequestView.as_view(),
+        name="password_reset_request",
+    ),
+    path(
+        "password-reset-confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
+    ),
+    path("profile-edit/", ProfileEditView.as_view(), name="profile_edit"),
+    path(
+        "personal-info-edit/", PersonalInfoEditView.as_view(), name="personal_info_edit"
     ),
     # ---------------------------------------------------------------------------------
     # character

@@ -1,247 +1,218 @@
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import make_password
-from .models import CustomUser
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.views.decorators.http import require_http_methods
-import json
-import logging
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import login, logout, authenticate
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import update_session_auth_hash
+from .models import CustomUser
+from .serializers import ProfileSerializer, CustomUserSerializer
+from django.core.exceptions import ValidationError
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework_simplejwt.tokens import RefreshToken
 
-logger = logging.getLogger(__name__)
 
+class SignupView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = []
+    parser_classes = (MultiPartParser, FormParser)  # 파일 업로드를 위해 파서 추가
 
-# 회원가입
-@csrf_exempt
-def signup(request):
-    if request.method == "POST":
-        user_id = request.POST.get("user_id")
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        email = request.POST.get("email")
-        photo = request.FILES.get("photo", None)
-
-        if CustomUser.objects.filter(user_id=user_id).exists():
-            return JsonResponse(
-                {"user_id_error": "이미 존재하는 ID입니다."}, status=400
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(
+                {"message": "회원가입 성공"}, status=status.HTTP_201_CREATED
             )
-
-        user = CustomUser.objects.create_user(
-            user_id=user_id,
-            username=username,
-            email=email,
-            password=password,
-            photo=photo,
-        )
-
-        return JsonResponse({"message": "환영합니다!"})  # 성공 메시지 전송
-
-    return render(request, "signup.html")
+        else:
+            return Response(
+                {"error": "회원가입 실패", "details": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 # 아이디 중복 검사
-@require_http_methods(["POST"])
-def check_user_id(request):
-    data = json.loads(request.body)
-    user_id = data.get("user_id")
-    if CustomUser.objects.filter(user_id=user_id).exists():
-        return JsonResponse({"user_id_exists": True})
-    else:
-        return JsonResponse({"user_id_exists": False})
+class CheckUserIDView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = CheckUserIDSerializer(data=request.data)
+        if serializer.is_valid():
+            user_id = serializer.validated_data["user_id"]
+            exists = CustomUser.objects.filter(user_id=user_id).exists()
+            return Response({"user_id_exists": exists}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 로그인
-@csrf_exempt
-def user_login(request):
-    if request.method == "POST":
-        user_id = request.POST.get("user_id")
-        password = request.POST.get("password")
+class LoginView(APIView):
+    permission_classes = []
 
-        try:
-            user = CustomUser.objects.get(user_id=user_id)
-            if user.check_password(password):
-                login(request, user, backend="user.authentication.UserIDAuthBackend")
-                return redirect("home")
-            else:
-                return render(
-                    request, "login.html", {"error": "잘못된 비밀번호입니다."}
-                )
-        except CustomUser.DoesNotExist:
-            return render(
-                request, "login.html", {"error": "존재하지 않는 사용자 ID입니다."}
+    def post(self, request, *args, **kwargs):
+        user_id = request.data.get("user_id")
+        password = request.data.get("password")
+        user = authenticate(request, user_id=user_id, password=password)
+        if user is not None:
+            login(request, user)
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "message": "로그인 성공",
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+                status=status.HTTP_200_OK,
             )
-
-    return render(request, "login.html", {"error": ""})
+        else:
+            return Response(
+                {"error": "로그인 실패"}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 # 로그아웃
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect("home")  # 로그아웃 후 리디렉션 될 페이지
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return Response({"message": "로그아웃 성공"}, status=status.HTTP_200_OK)
 
 
 # 계정탈퇴
-@login_required
-def delete_account_view(request):
-    # 사용자 요청에 따라 계정 삭제
-    user = request.user
-    user.delete()
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    # 사용자 로그아웃
-    logout(request)
-
-    # 사용자에게 알림 메시지 전달
-    messages.success(request, "계정이 성공적으로 삭제되었습니다.")
-
-    # 로그인 페이지로 리디렉션
-    return redirect("login")
+    def delete(self, request, *args, **kwargs):
+        user = request.user
+        user.delete()
+        logout(request)
+        return Response({"message": "계정 삭제 성공"}, status=status.HTTP_200_OK)
 
 
-# 북마크한 글 볼 수 있게
-@login_required
-def bookmarks_view(request):
-    # 북마크한 글을 불러오는 로직 구현
-    return render(request, "bookmarks.html", {})
+# 북마크한 글 보기
+class BookmarksView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # 북마크한 글을 불러오는 로직 구현
+        return Response({"message": "북마크한 글 목록"}, status=status.HTTP_200_OK)
 
 
-# 마이페이지로
-def mypage(request):
-    # 북마크한 글을 불러오는 로직 구현
-    return render(request, "mypage.html")
+# 마이페이지
+class MyPageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # 마이페이지 로직 구현
+        return Response({"message": "마이페이지"}, status=status.HTTP_200_OK)
 
 
-# 비밀번호를 바꾸기 위한 이메일 주소 확인
-def password_reset_request(request):
-    if request.method == "POST":
-        email = request.POST["email"]
+# 비밀번호 재설정을 위한 이메일 확인
+class PasswordResetRequestView(APIView):
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
         associated_user = CustomUser.objects.filter(email=email).first()
         if associated_user:
-            return render(request, "password_reset_form.html", {"email": email})
+            return Response({"email": email}, status=status.HTTP_200_OK)
         else:
-            return render(
-                request,
-                "password_reset_request.html",
+            return Response(
                 {"error": "해당 이메일 주소가 없습니다."},
+                status=status.HTTP_404_NOT_FOUND,
             )
-    return render(request, "password_reset_request.html")
 
 
-# 비밀번호 바꾸기
-def password_reset_confirm(request):
-    if request.method == "POST":
-        email = request.POST["email"]
-        new_password1 = request.POST["new_password1"]
-        new_password2 = request.POST["new_password2"]
-        if new_password1 == new_password2:
-            associated_user = CustomUser.objects.filter(email=email).first()
-            if associated_user:
-                associated_user.set_password(new_password1)
-                associated_user.save()
-                return redirect("login")
-            else:
-                return render(
-                    request,
-                    "password_reset_form.html",
-                    {"error": "해당 이메일 주소가 없습니다.", "email": email},
-                )
+# 비밀번호 재설정
+class PasswordResetConfirmView(APIView):
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        new_password1 = request.data.get("new_password1")
+        new_password2 = request.data.get("new_password2")
+        if new_password1 != new_password2:
+            return Response(
+                {"error": "비밀번호가 일치하지 않습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        associated_user = CustomUser.objects.filter(email=email).first()
+        if associated_user:
+            associated_user.set_password(new_password1)
+            associated_user.save()
+            return Response(
+                {"message": "비밀번호 재설정 성공"}, status=status.HTTP_200_OK
+            )
         else:
-            return render(
-                request,
-                "password_reset_form.html",
-                {"error": "비밀번호가 일치하지 않습니다.", "email": email},
+            return Response(
+                {"error": "해당 이메일 주소가 없습니다."},
+                status=status.HTTP_404_NOT_FOUND,
             )
-    return render(request, "password_reset_form.html")
-    if request.method == "POST":
-        email = request.POST["email"]
-        new_password1 = request.POST["new_password1"]
-        new_password2 = request.POST["new_password2"]
-        if new_password1 == new_password2:
-            associated_user = CustomUser.objects.filter(email=email).first()
-            if associated_user:
-                associated_user.set_password(new_password1)
-                associated_user.save()
-                return redirect("login")
-            else:
-                return render(
-                    request,
-                    "password_reset_form.html",
-                    {"error": "해당 이메일 주소가 없습니다.", "email": email},
-                )
-        else:
-            return render(
-                request,
-                "password_reset_form.html",
-                {"error": "비밀번호가 일치하지 않습니다.", "email": email},
-            )
-    return render(request, "password_reset_form.html")
-
-
-@login_required
-def profile_view(request):
-    return render(request, "mypage.html")
 
 
 # 프로필 사진 수정
-@login_required
-def profile_edit(request):
-    if request.method == "POST":
+class ProfileEditView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
         photo = request.FILES.get("photo")
         if photo:
             request.user.photo = photo
             request.user.save()
-            messages.success(request, "프로필 사진이 수정되었습니다.")
-        return redirect("mypage")
-    return render(request, "profile_edit.html")
+            return Response(
+                {"message": "프로필 사진이 수정되었습니다."}, status=status.HTTP_200_OK
+            )
+        return Response(
+            {"error": "사진이 업로드되지 않았습니다."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 # 개인 정보 수정
-@login_required
-def personal_info_edit(request):
-    if request.method == "POST":
-        user_id = request.POST.get("user_id")
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        password2 = request.POST.get("password2")
+class PersonalInfoEditView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = (
+        MultiPartParser,
+        FormParser,
+    )  # 파일 업로드와 폼 데이터를 위해 파서 추가
 
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        user_id = request.data.get("user_id")
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        password2 = request.data.get("password2")
+
+        # 비밀번호 확인
         if password and password != password2:
-            return render(
-                request,
-                "personal_info_edit.html",
+            return Response(
                 {"error": "비밀번호가 일치하지 않습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # ID 중복 검사
+        # user_id 중복 확인
         if (
-            CustomUser.objects.filter(user_id=user_id)
-            .exclude(pk=request.user.pk)
-            .exists()
+            user_id
+            and CustomUser.objects.filter(user_id=user_id).exclude(pk=user.pk).exists()
         ):
-            return render(
-                request, "personal_info_edit.html", {"error": "이미 존재하는 ID입니다."}
+            return Response(
+                {"error": "이미 존재하는 ID입니다."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        request.user.user_id = user_id
-        request.user.username = username
-        request.user.email = email
-
+        # 필드별 업데이트
+        if user_id:
+            user.user_id = user_id
+        if username:
+            user.username = username
+        if email:
+            user.email = email
         if password:
-            request.user.set_password(password)
-            request.user.save()
-            update_session_auth_hash(
-                request, request.user
-            )  # 비밀번호 변경 후에도 세션 유지
-            messages.success(
-                request, "비밀번호가 변경되었습니다. 다시 로그인 해주세요."
+            user.set_password(password)
+            user.save()
+            update_session_auth_hash(request, user)
+            return Response(
+                {"message": "비밀번호가 변경되었습니다. 다시 로그인 해주세요."},
+                status=status.HTTP_200_OK,
             )
-            return redirect("login")
 
-        request.user.save()
-        messages.success(request, "프로필이 성공적으로 수정되었습니다.")
-        return redirect("mypage")
-
-    return render(request, "personal_info_edit.html")
+        user.save()
+        return Response(
+            {"message": "프로필이 성공적으로 수정되었습니다."},
+            status=status.HTTP_200_OK,
+        )
