@@ -1,75 +1,69 @@
 from django.db import models
 from django import forms
 from django.conf import settings
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 
 class Character(models.Model):
-    CHARACTER_CHOICES = [
-        ("dol", "돌고래"),
-        ("ang", "앵무새"),
-        ("da", "다람쥐"),
+    CHARACTER_TYPES = [
+        ("parrot", "앵무새"),
+        ("dolphin", "돌고래"),
+        ("squirrel", "다람쥐"),
     ]
 
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    character_type = models.CharField(
-        max_length=100, choices=CHARACTER_CHOICES, blank=True, null=True
-    )
+    type = models.CharField(max_length=20, choices=CHARACTER_TYPES, default="parrot")
+    gauge = models.PositiveIntegerField(default=0)  # 캐릭터 게이지
+    active = models.BooleanField(default=True)  # 활성화 여부
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_type_display()})"
 
 
-class ActionForm(forms.Form):
-    ACTION_CHOICES = [
-        ("eating", "밥 먹기"),
-        ("cleaning", "청소하기"),
-        ("walking", "산책하기"),
-        ("washing", "씻기"),
+class JournalEntry(models.Model):
+    ACTION_TYPES = [
+        ("eat", "먹기"),
+        ("wash", "씻기"),
+        ("walk", "산책하기"),
+        ("shower", "샤워하기"),
     ]
 
-    YES_NO_CHOICES = [
-        ("yes", "예"),
-        ("no", "아니오"),
+    MEAL_TIMES = [
+        ("breakfast", "아침"),
+        ("lunch", "점심"),
+        ("dinner", "저녁"),
+        ("snack", "간식"),
     ]
 
-    action_type = forms.ChoiceField(choices=ACTION_CHOICES, label="행동 선택")
-    detail = forms.CharField(
-        max_length=200,
-        label="상세 내용",
-        widget=forms.TextInput(attrs={"placeholder": "여기에 입력"}),
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now().date)  # 날짜 필드를 기본값으로 설정
+    action_type = models.CharField(max_length=10, choices=ACTION_TYPES)
+    meal_time = models.CharField(
+        max_length=10, choices=MEAL_TIMES, null=True, blank=True
     )
-
-    def __init__(self, *args, **kwargs):
-        super(ActionForm, self).__init__(*args, **kwargs)
-        if self.data.get("action_type") == "washing":
-            self.fields["detail"] = forms.ChoiceField(
-                choices=self.YES_NO_CHOICES, label="상세 내용", widget=forms.RadioSelect
-            )
-
-
-class Diary(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
-    )  # 변경된 부분
-    content = models.TextField()
-    entry_time = models.DateTimeField(auto_now_add=True)
-    date = models.DateField()
-    weather = models.CharField(
-        max_length=20,
-        choices=[
-            ("sunny", "맑음"),
-            ("partly_cloudy", "약간 흐림"),
-            ("cloudy", "흐림"),
-            ("rain", "비"),
-            ("snow", "눈"),
-        ],
-    )
-    wake_up_time = models.TimeField()
-    sleep_time = models.TimeField()
+    action_detail = models.TextField(blank=True, null=True)
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} - {self.date}"
+        return f"{self.date} - {self.get_action_type_display()}"
+
+
+class Ending(models.Model):
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    journal_entries = models.TextField()  # JSON 또는 텍스트 형태로 모든 기록을 저장
+
+    def __str__(self):
+        return f"Ending for {self.character.name} on {self.date}"
+
+
+class DiaryEntry(models.Model):
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now().date)  # 날짜 필드를 기본값으로 설정
+    weather = models.CharField(max_length=100, null=True, blank=True)  # 날씨 필드 추가
+    diary_text = models.TextField()  # 일기 필드 추가
+
+    def __str__(self):
+        return f"{self.date} - {self.character.name}"

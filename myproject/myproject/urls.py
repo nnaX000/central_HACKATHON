@@ -35,7 +35,18 @@ from user.views import (
     PersonalInfoEditView,
 )
 from main.views import home
-from character.views import ActionView, FinalizeActionView, DiaryEntryView
+from character.views import (
+    CharacterListCreateView,
+    CharacterDetailView,
+    CharacterGaugeView,
+    JournalEntryListCreateView,
+    JournalEntryDetailView,
+    EndingListCreateView,
+    EndingDetailView,
+    DiaryEntryListCreateView,
+    DiaryEntryDetailView,
+    CharacterEndingView,
+)
 
 
 urlpatterns = [
@@ -65,16 +76,35 @@ urlpatterns = [
     # ---------------------------------------------------------------------------------
     # character
     path(
-        "characters/<int:character_id>/action/",
-        ActionView.as_view(),
-        name="character_action",
+        "characters/", CharacterListCreateView.as_view(), name="character-list-create"
     ),
     path(
-        "characters/<int:character_id>/finalize/",
-        FinalizeActionView.as_view(),
-        name="finalize_action",
+        "characters/<int:pk>/", CharacterDetailView.as_view(), name="character-detail"
     ),
-    path("diary-entry/", DiaryEntryView.as_view(), name="diary_entry"),
+    path("characters/gauge/", CharacterGaugeView.as_view(), name="character-gauge"),
+    path(
+        "journal_entries/",
+        JournalEntryListCreateView.as_view(),
+        name="journal-entry-list-create",
+    ),
+    path(
+        "journal_entries/<int:pk>/",
+        JournalEntryDetailView.as_view(),
+        name="journal-entry-detail",
+    ),
+    path("endings/", EndingListCreateView.as_view(), name="ending-list-create"),
+    path("endings/<int:pk>/", EndingDetailView.as_view(), name="ending-detail"),
+    path(
+        "diary_entries/",
+        DiaryEntryListCreateView.as_view(),
+        name="diary-entry-list-create",
+    ),
+    path(
+        "diary_entries/<int:pk>/",
+        DiaryEntryDetailView.as_view(),
+        name="diary-entry-detail",
+    ),
+    path("character/ending/", CharacterEndingView.as_view(), name="character-ending"),
     # ---------------------------------------------------------------------------------
     # post
     path("post/", include("post.urls")),
