@@ -30,7 +30,7 @@ class Command(BaseCommand):
                     CleaningSpot.objects.create(name=row[0])
 
     def load_walking_places(self):
-        with open("character/walking.csv", encoding="utf-8") as file:
+        with open("character/sports.csv", encoding="utf-8") as file:
             reader = csv.reader(file)
             for row in reader:
                 if row:  # 빈 줄 무시
