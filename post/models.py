@@ -30,15 +30,17 @@ class Post(models.Model):
         return self.likes.count()
 
 class Notification(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='notifications', on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, related_name='notifications', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='post_notifications', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='post_notifications', on_delete=models.CASCADE)
     message = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
     
     def __str__(self):
         return f"Notification for {self.user.username} on {self.post.title}"
+    
 
+    
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     can_post = models.BooleanField(default=True)

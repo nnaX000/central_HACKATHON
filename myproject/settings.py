@@ -204,7 +204,21 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_BEAT_SCHEDULE = {
     'check-due-tasks-every-minute': {
-        'task': 'your_project_name.tasks.check_due_tasks',
+        'task': 'board.tasks.check_due_tasks',
         'schedule': crontab(minute='*/1'),  # 매 분마다 실행
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
     },
 }

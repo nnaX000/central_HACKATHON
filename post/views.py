@@ -69,24 +69,36 @@ def post_delete(request, pk):
         return Response({'message': 'Post deleted successfully'}, status=status.HTTP_200_OK)
     return Response({'message': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def like_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    if post.likes.filter(id=request.user.id).exists():
-        post.likes.remove(request.user)
+    user = request.user
+
+    if post.likes.filter(id=user.id).exists():
+        post.likes.remove(user)
         liked = False
     else:
-        post.likes.add(request.user)
+        post.likes.add(user)
         liked = True
 
         # 좋아요 알림 생성
-        if request.user != post.author:
-            Notification.objects.create(
-                user=post.author,
-                post=post,
-                message=f"{request.user.username}님이 '{post.title}' 글을 좋아합니다."
-            )
+        if user != post.author:
+            try:
+                notification = Notification.objects.create(
+                    user=post.author,
+                    post=post,
+                    message=f"{user.username}님이 '{post.title}' 글을 좋아합니다."
+                )
+                logger.info(f"알림 생성: {notification.message} (ID: {notification.id})")
+            except Exception as e:
+                logger.error(f"알림 생성 오류: {e}")
+                return Response({'error': f"알림 생성 오류: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({
         'liked': liked,
