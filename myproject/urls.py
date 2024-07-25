@@ -38,6 +38,7 @@ from user.views import (
     PasswordResetConfirmView,
     ProfileEditView,
     PersonalInfoEditView,
+    UserDetailView,
 )
 from main.views import home
 from character.views import (
@@ -51,12 +52,15 @@ from character.views import (
     DiaryEntryListCreateView,
     DiaryEntryDetailView,
     CharacterEndingView,
+    RandomRecommendationView,
+    KeywordRecommendationView,
+    CharacterJournalDetailView,
 )
 from post.views import PostViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'posts', PostViewSet)
+router.register(r"posts", PostViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -82,6 +86,7 @@ urlpatterns = [
     path(
         "personal-info-edit/", PersonalInfoEditView.as_view(), name="personal_info_edit"
     ),
+    path("user/", UserDetailView.as_view(), name="user-detail"),
     # ---------------------------------------------------------------------------------
     # character
     path(
@@ -114,6 +119,21 @@ urlpatterns = [
         name="diary-entry-detail",
     ),
     path("character/ending/", CharacterEndingView.as_view(), name="character-ending"),
+    path(
+        "recommendations/random/",
+        RandomRecommendationView.as_view(),
+        name="random-recommendation",
+    ),
+    path(
+        "recommendations/keyword/",
+        KeywordRecommendationView.as_view(),
+        name="keyword-recommendation",
+    ),
+    path(
+        "characters/<int:user_id>/journal/<str:date>/",
+        CharacterJournalDetailView.as_view(),
+        name="user-journal-detail",
+    ),
     # ---------------------------------------------------------------------------------
     # post
     path("post/", include("post.urls")),
@@ -122,9 +142,8 @@ urlpatterns = [
     path("board/", include("board.urls")),
     # ----------------------------------------
     # JWT 토큰을 발급받기 위한 URL 패턴
-    path('api/', include(router.urls)),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path("api/", include(router.urls)),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # ----------------------------------------
-
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

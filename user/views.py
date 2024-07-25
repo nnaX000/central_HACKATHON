@@ -230,7 +230,7 @@ class PersonalInfoEditView(APIView):
 
 
 class UserDetailView(APIView):
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
