@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detail Input for {{ action_name }}</title>
+</head>
+<body>
+    <h1>{{ action_name }} 상세 입력 - {{ character.name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="id_action_type">행동 유형 선택:</label>
+        <select id="id_action_type" name="action_type">
+            <option value="eating">밥 먹기</option>
+            <option value="cleaning">청소하기</option>
+            <option value="walking">산책하기</option>
+            <option value="washing">씻기</option>
+        </select><br>
+        <label for="detail">{{ action_name }} 상세 정보:</label>
+        <input type="text" name="detail" id="id_detail" placeholder="여기에 입력">
+        <button type="submit">저장</button>
+    </form>
+</body>
+</html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+    function updateDetailInput() {
+        var actionType = $("#id_action_type").val();
+        if (actionType === "washing") {
+            $("#id_detail").replaceWith(`
+                <div>
+                    <label for="id_detail_yes">상세 내용:</label>
+                    <input type="radio" name="detail" value="yes" id="id_detail_yes"><label for="id_detail_yes">예</label>
+                    <input type="radio" name="detail" value="no" id="id_detail_no"><label for="id_detail_no">아니오</label>
+                </div>
+            `);
+        } else {
+            $("#id_detail").replaceWith('<input type="text" name="detail" id="id_detail" placeholder="여기에 입력" maxlength="200">');
+        }
+    }
+
+    $("#id_action_type").change(updateDetailInput);
+    updateDetailInput(); // 초기 로딩 시에도 상태를 확인
+});
+</script>

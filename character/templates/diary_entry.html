@@ -1,0 +1,25 @@
+<!-- diary_entry.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>일기 입력</title>
+</head>
+<body>
+    <form method="post">
+        {% csrf_token %}
+        내용: <textarea name="content"></textarea><br>
+        날씨:
+        <label><input type="radio" name="weather" value="sunny"> 맑음</label>
+        <label><input type="radio" name="weather" value="partly_cloudy"> 조금 흐림</label>
+        <label><input type="radio" name="weather" value="cloudy"> 흐림</label>
+        <label><input type="radio" name="weather" value="rain"> 비</label>
+        <label><input type="radio" name="weather" value="snow"> 눈</label><br>
+        날짜: <input type="date" name="date"><br>
+        일어난 시간: <input type="time" name="wake_up_time" step="600"><br>
+        잠든 시간: <input type="time" name="sleep_time" step="600"><br>
+        <input type="submit" value="저장">
+    </form>
+</body>
+</html>
+
