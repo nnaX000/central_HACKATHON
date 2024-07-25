@@ -14,8 +14,8 @@ urlpatterns = [
     path('like/<int:pk>/', views.like_post, name='like_post'),
     path('user/posts/', views.user_posts, name='user_posts'),
     path('<int:pk>/', views.post_detail, name='post_detail'),
-    path('notifications/', views.notifications, name='notifications'),
-     path('notifications/read/<int:pk>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('report_post/<int:pk>/', views.report_post, name='report-post'),
+     
 ]
 
 if settings.DEBUG:

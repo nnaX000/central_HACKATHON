@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "post",
     "rest_framework",
     "rest_framework_simplejwt",
+    'django_celery_beat',
 ]
 
 REST_FRAMEWORK = {
@@ -169,6 +170,7 @@ DATABASES = {
 
 # settings.py
 from datetime import timedelta
+from celery.schedules import crontab
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1440),  # 여기서 유효 기간을 늘려주세요.
@@ -192,4 +194,17 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+}
+
+from celery import Celery
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_BEAT_SCHEDULE = {
+    'check-due-tasks-every-minute': {
+        'task': 'your_project_name.tasks.check_due_tasks',
+        'schedule': crontab(minute='*/1'),  # 매 분마다 실행
+    },
 }

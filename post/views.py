@@ -3,16 +3,20 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .models import Post, Notification
+from .models import Post, Notification, UserProfile
 from .serializers import PostSerializer, NotificationSerializer
+from django.core.exceptions import PermissionDenied
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]  # 관리자 권한 제거
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
+        user_profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        if not user_profile.can_post:
+            raise PermissionDenied(f'You are banned from posting until {user_profile.ban_until}')
         serializer.save(author=self.request.user)
 
 @api_view(['GET'])
@@ -118,3 +122,23 @@ def mark_notification_as_read(request, pk):
     notification.read = True
     notification.save()
     return Response({'message': 'Notification marked as read'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def report_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    user = request.user
+
+    if post.reports.filter(id=user.id).exists():
+        return Response({'message': 'You have already reported this post.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    post.reports.add(user)
+    post.total_reports += 1
+    post.save()
+
+    if post.total_reports >= 10:
+        post.delete()
+        user_profile, created = UserProfile.objects.get_or_create(user=post.author)
+        user_profile.ban_user_for_one_week()
+
+    return Response({'message': 'Post reported successfully'}, status=status.HTTP_200_OK)

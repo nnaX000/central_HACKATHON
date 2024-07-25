@@ -6,3 +6,6 @@ pandas
 scikit-learn
 numpy
 Pillow
+celery
+django-celery-beat
+celery redis

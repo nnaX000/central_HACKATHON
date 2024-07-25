@@ -127,6 +127,21 @@ class RecommendView(APIView):
 def recommend_page(request):
     return render(request, 'recommend.html')
 
+class AddRecommendationToListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        user = request.user
+        recommendations = data.get('recommendations', [])
+        if not recommendations:
+            return JsonResponse({"error": "recommendations field is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 에브리리스트에 추천 항목 추가
+        for recommendation in recommendations:
+            EveryList.objects.create(user=user, task=recommendation)
+
+        return JsonResponse({"success": "Recommendations added to your EveryList"}, status=status.HTTP_200_OK)
 
 class EveryListView(generics.ListCreateAPIView):
     queryset = EveryList.objects.all()
