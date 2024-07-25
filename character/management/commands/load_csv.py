@@ -19,19 +19,19 @@ class Command(BaseCommand):
         with open("character/foods.csv", encoding="utf-8") as file:
             reader = csv.reader(file)
             for row in reader:
-                if row:  # 빈 줄 무시
+                if row:
                     Food.objects.create(name=row[0])
 
     def load_cleaning_spots(self):
         with open("character/cleaning_spot.csv", encoding="utf-8") as file:
             reader = csv.reader(file)
             for row in reader:
-                if row:  # 빈 줄 무시
+                if row:
                     CleaningSpot.objects.create(name=row[0])
 
     def load_walking_places(self):
         with open("character/sports.csv", encoding="utf-8") as file:
             reader = csv.reader(file)
             for row in reader:
-                if row:  # 빈 줄 무시
+                if row:
                     WalkingPlace.objects.create(name=row[0])

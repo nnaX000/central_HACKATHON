@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 import datetime
+from urllib.parse import unquote
 from .models import (
     Character,
     JournalEntry,
@@ -68,27 +69,41 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         character = get_object_or_404(Character, id=self.request.data.get("character"))
         action_type = self.request.data.get("action_type")
-        action_detail = self.request.data.get("action_detail")
+        action_detail = self.request.data.get("action_detail", "").strip()  # 공백 제거
 
         if character.user == self.request.user:
-            # 음식 관련 액션인 경우
-            if action_type == "eat":
-                if not Food.objects.filter(name=action_detail).exists():
-                    Food.objects.create(name=action_detail)
-
-            # 청소 관련 액션인 경우
-            elif action_type == "wash":
-                if not CleaningSpot.objects.filter(name=action_detail).exists():
-                    CleaningSpot.objects.create(name=action_detail)
-
-            # 산책 관련 액션인 경우
-            elif action_type == "walk":
-                if not WalkingPlace.objects.filter(name=action_detail).exists():
-                    WalkingPlace.objects.create(name=action_detail)
-
             serializer.save(character=character, date=timezone.now().date())
             character.gauge += 5
             character.save()
+
+            # 행동 기록에 새로운 항목을 추가
+            if (
+                action_type == "eat"
+                and not Food.objects.filter(name=action_detail).exists()
+            ):
+                if action_detail:
+                    Food.objects.create(name=action_detail)
+                else:
+                    print("Food action_detail is empty or invalid")
+
+            elif (
+                action_type == "wash"
+                and not CleaningSpot.objects.filter(name=action_detail).exists()
+            ):
+                if action_detail:
+                    CleaningSpot.objects.create(name=action_detail)
+                else:
+                    print("CleaningSpot action_detail is empty or invalid")
+
+            elif (
+                action_type == "walk"
+                and not WalkingPlace.objects.filter(name=action_detail).exists()
+            ):
+                if action_detail:
+                    WalkingPlace.objects.create(name=action_detail)
+                else:
+                    print("WalkingPlace action_detail is empty or invalid")
+
         else:
             raise PermissionDenied(
                 "You do not have permission to add entries for this character."
@@ -306,9 +321,15 @@ class RandomRecommendationView(APIView):
             WalkingPlace.objects.all().values_list("name", flat=True)
         )
 
-        random_foods = random.sample(food_recommendations, 3)
-        random_cleanings = random.sample(cleaning_recommendations, 3)
-        random_walkings = random.sample(walking_recommendations, 3)
+        random_foods = random.sample(
+            food_recommendations, min(3, len(food_recommendations))
+        )
+        random_cleanings = random.sample(
+            cleaning_recommendations, min(3, len(cleaning_recommendations))
+        )
+        random_walkings = random.sample(
+            walking_recommendations, min(3, len(walking_recommendations))
+        )
 
         return Response(
             {
@@ -322,11 +343,10 @@ class RandomRecommendationView(APIView):
 class KeywordRecommendationView(APIView):
     def get(self, request, *args, **kwargs):
         keyword = request.query_params.get("keyword", "")
+        keyword = unquote(keyword).strip()  # URL 디코딩 후 공백 제거
+
         if not keyword:
-            return Response(
-                {"error": "Keyword parameter is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return self.get_random_recommendations()
 
         food_recommendations = list(
             Food.objects.filter(name__icontains=keyword).values_list("name", flat=True)
@@ -342,16 +362,37 @@ class KeywordRecommendationView(APIView):
             )
         )
 
-        # 디버깅 메시지
-        print(f"Keyword: {keyword}")
-        print(f"Food Recommendations: {food_recommendations}")
-        print(f"Cleaning Recommendations: {cleaning_recommendations}")
-        print(f"Walking Recommendations: {walking_recommendations}")
-
         return Response(
             {
                 "foods": food_recommendations,
                 "cleaning_spots": cleaning_recommendations,
                 "walking_places": walking_recommendations,
+            }
+        )
+
+    def get_random_recommendations(self):
+        food_recommendations = list(Food.objects.all().values_list("name", flat=True))
+        cleaning_recommendations = list(
+            CleaningSpot.objects.all().values_list("name", flat=True)
+        )
+        walking_recommendations = list(
+            WalkingPlace.objects.all().values_list("name", flat=True)
+        )
+
+        random_foods = random.sample(
+            food_recommendations, min(3, len(food_recommendations))
+        )
+        random_cleanings = random.sample(
+            cleaning_recommendations, min(3, len(cleaning_recommendations))
+        )
+        random_walkings = random.sample(
+            walking_recommendations, min(3, len(walking_recommendations))
+        )
+
+        return Response(
+            {
+                "foods": random_foods,
+                "cleaning_spots": random_cleanings,
+                "walking_places": random_walkings,
             }
         )
