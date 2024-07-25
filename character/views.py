@@ -41,7 +41,7 @@ class CharacterListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
-        return Character.objects.filter(user=self.request.user)
+        return Character.objects.filter(user=self.request.user, ended=False)
 
 
 class CharacterDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -69,10 +69,15 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         character = get_object_or_404(Character, id=self.request.data.get("character"))
         action_type = self.request.data.get("action_type")
-        action_detail = self.request.data.get("action_detail", "").strip()  # 공백 제거
+        action_detail = self.request.data.get("action_detail")
+        action_completed = self.request.data.get("completed")
 
         if character.user == self.request.user:
-            serializer.save(character=character, date=timezone.now().date())
+            serializer.save(
+                character=character,
+                date=timezone.now().date(),
+                completed=action_completed,
+            )
             character.gauge += 5
             character.save()
 
@@ -87,7 +92,7 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
                     print("Food action_detail is empty or invalid")
 
             elif (
-                action_type == "wash"
+                action_type == "cleaning"
                 and not CleaningSpot.objects.filter(name=action_detail).exists()
             ):
                 if action_detail:
@@ -103,6 +108,16 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
                     WalkingPlace.objects.create(name=action_detail)
                 else:
                     print("WalkingPlace action_detail is empty or invalid")
+
+            elif action_type == "wash":
+                if action_detail:
+                    # 만약 wash 행동에 대한 별도의 모델이 있다면, 여기서 처리합니다.
+                    # 예를 들어, WashingPlace.objects.create(name=action_detail) 등
+                    print(
+                        f"Wash action detail: {action_detail}, completed: {action_completed}"
+                    )
+                else:
+                    print("Wash action_detail is empty or invalid")
 
         else:
             raise PermissionDenied(
@@ -183,7 +198,9 @@ class DiaryEntryListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         character = get_object_or_404(Character, id=self.request.data.get("character"))
         if character.user == self.request.user:
-            serializer.save(character=character, date=timezone.now().date())
+            serializer.save(
+                character=character, user=self.request.user, date=timezone.now().date()
+            )
         else:
             raise PermissionDenied(
                 "You do not have permission to add entries for this character."
@@ -226,7 +243,11 @@ class CharacterEndingView(APIView):
                 "day": date.strftime("%A"),
                 "weather": "맑음",  # 날씨는 사용자가 입력하도록 설계해야 함
                 "meals": {"breakfast": "", "lunch": "", "dinner": "", "snack": ""},
-                "records": {"cleaning": "", "exercise": "", "shower": ""},
+                "records": {
+                    "cleaning": "",
+                    "exercise": "",
+                    "shower": {"completed": False},
+                },
                 "diary": "",
             }
 
@@ -234,14 +255,17 @@ class CharacterEndingView(APIView):
                 if entry.action_type == "eat":
                     if entry.meal_time:
                         day_data["meals"][entry.meal_time] = entry.action_detail
-                elif entry.action_type == "wash":
+                elif entry.action_type == "cleaning":
                     day_data["records"]["cleaning"] = entry.action_detail
                 elif entry.action_type == "walk":
                     day_data["records"]["exercise"] = entry.action_detail
-                elif entry.action_type == "shower":
-                    day_data["records"]["shower"] = entry.action_detail
+                elif entry.action_type == "wash":
+                    day_data["records"]["shower"] = {
+                        "completed": entry.completed,
+                    }
 
             for diary in diary_entries.filter(date=date):
+                diary_entry = diary_entries.first()
                 day_data["diary"] = diary.diary_text
                 day_data["weather"] = diary.weather
 
@@ -291,12 +315,14 @@ class CharacterJournalDetailView(APIView):
             if entry.action_type == "eat":
                 if entry.meal_time:
                     day_data["meals"][entry.meal_time] = entry.action_detail
-            elif entry.action_type == "wash":
+            elif entry.action_type == "cleaning":
                 day_data["records"]["cleaning"] = entry.action_detail
             elif entry.action_type == "walk":
                 day_data["records"]["exercise"] = entry.action_detail
-            elif entry.action_type == "shower":
-                day_data["records"]["shower"] = entry.action_detail
+            elif entry.action_type == "wash":
+                day_data["records"]["shower"] = {
+                    "completed": entry.completed,
+                }
 
         if diary_entries.exists():
             diary_entry = diary_entries.first()
