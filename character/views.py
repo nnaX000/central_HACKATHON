@@ -422,3 +422,26 @@ class KeywordRecommendationView(APIView):
                 "walking_places": random_walkings,
             }
         )
+
+
+class UserActivityDatesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # 다이어리와 행동 기록 조회
+        diary_entries = DiaryEntry.objects.filter(user=user).values_list(
+            "date", flat=True
+        )
+        journal_entries = JournalEntry.objects.filter(character__user=user).values_list(
+            "date", flat=True
+        )
+
+        # 중복되지 않는 날짜 목록 생성
+        dates = set(diary_entries) | set(journal_entries)
+
+        # 날짜 목록을 정렬
+        sorted_dates = sorted(dates)
+
+        return Response(sorted_dates)

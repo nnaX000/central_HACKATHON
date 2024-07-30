@@ -40,7 +40,7 @@ from user.views import (
     PersonalInfoEditView,
     UserDetailView,
 )
-from main.views import home,combined_list_view
+from main.views import home, combined_list_view
 from character.views import (
     CharacterListCreateView,
     CharacterDetailView,
@@ -55,6 +55,7 @@ from character.views import (
     RandomRecommendationView,
     KeywordRecommendationView,
     CharacterJournalDetailView,
+    UserActivityDatesAPIView,
 )
 from post.views import PostViewSet
 from rest_framework.routers import DefaultRouter
@@ -66,10 +67,14 @@ router.register(r"posts", PostViewSet)
 urlpatterns = [
     path("admin/", admin.site.urls),
     # main
-    path('home/',home,name='home'),
-    path('', combined_list_view, name='combined-list'),
-    path('notifications/', notifications, name='notifications'),
-    path('notifications/mark_as_read/<int:pk>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path("home/", home, name="home"),
+    path("", combined_list_view, name="combined-list"),
+    path("notifications/", notifications, name="notifications"),
+    path(
+        "notifications/mark_as_read/<int:pk>/",
+        mark_notification_as_read,
+        name="mark_notification_as_read",
+    ),
     # --------------------------------------------------------
     # account
     path("signup/", SignupView.as_view(), name="signup"),
@@ -140,6 +145,11 @@ urlpatterns = [
         "characters/<int:user_id>/journal/<str:date>/",
         CharacterJournalDetailView.as_view(),
         name="user-journal-detail",
+    ),
+    path(
+        "user-activity-dates/",
+        UserActivityDatesAPIView.as_view(),
+        name="user-activity-dates",
     ),
     # ---------------------------------------------------------------------------------
     # post
