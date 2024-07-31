@@ -183,7 +183,18 @@ class EndingDetailView(generics.RetrieveUpdateDestroyAPIView):
         diary_entries = DiaryEntry.objects.filter(
             character=instance.character
         ).order_by("date")
-        diary_data = DiaryEntrySerializer(diary_entries, many=True).data
+
+        # 각 날짜별로 최신 다이어리 항목을 선택하는 로직
+        latest_diary_entries = {}
+        for diary in diary_entries:
+            date = diary.date
+            if (
+                date not in latest_diary_entries
+                or diary.pk > latest_diary_entries[date].pk
+            ):
+                latest_diary_entries[date] = diary
+
+        diary_data = DiaryEntrySerializer(latest_diary_entries.values(), many=True).data
         data = serializer.data
         data["journal_entries"] = journal_data
         data["diary_entries"] = diary_data
@@ -233,6 +244,16 @@ class CharacterEndingView(APIView):
         )
         diary_entries = DiaryEntry.objects.filter(character=character).order_by("date")
 
+        # 날짜별 최신 다이어리 항목을 저장할 딕셔너리
+        latest_diary_entries = {}
+        for diary in diary_entries:
+            date = diary.date
+            if (
+                date not in latest_diary_entries
+                or diary.pk > latest_diary_entries[date].pk
+            ):
+                latest_diary_entries[date] = diary
+
         data = []
         for date in sorted(
             set(entry.date for entry in journal_entries)
@@ -264,10 +285,11 @@ class CharacterEndingView(APIView):
                         "completed": entry.completed,
                     }
 
-            for diary in diary_entries.filter(date=date):
-                diary_entry = diary_entries.first()
-                day_data["diary"] = diary.diary_text
-                day_data["weather"] = diary.weather
+            # 각 날짜별로 최신 다이어리 항목 추가
+            if date in latest_diary_entries:
+                diary_entry = latest_diary_entries[date]
+                day_data["diary"] = diary_entry.diary_text
+                day_data["weather"] = diary_entry.weather
 
             data.append(day_data)
 
@@ -295,11 +317,11 @@ class CharacterJournalDetailView(APIView):
             )
 
         journal_entries = JournalEntry.objects.filter(
-            character__user_id=user_id, date=date_obj
+            character__user_id=int(user_id), date=date_obj
         )
         # character__user_id와 date로 필터링
         diary_entries = DiaryEntry.objects.filter(
-            character__user_id=user_id, date=date_obj
+            character__user_id=int(user_id), date=date_obj
         )
 
         day_data = {
@@ -325,7 +347,7 @@ class CharacterJournalDetailView(APIView):
                 }
 
         if diary_entries.exists():
-            diary_entry = diary_entries.first()
+            diary_entry = diary_entries.order_by("-id").first()  # 최신 항목을 가져옴
             day_data["weather"] = diary_entry.weather
             day_data["diary"] = diary_entry.diary_text
 
@@ -333,6 +355,7 @@ class CharacterJournalDetailView(APIView):
         print(f"Date: {date_obj}")
         print(f"Journal Entries: {journal_entries}")
         print(f"Diary Entries: {diary_entries}")
+        print(f"Day Data: {day_data}")
 
         return Response(day_data, status=status.HTTP_200_OK)
 
