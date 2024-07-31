@@ -110,6 +110,8 @@ class MyPageView(APIView):
 
 # 비밀번호 재설정을 위한 이메일 확인
 class PasswordResetRequestView(APIView):
+    permission_classes = []
+
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
         associated_user = CustomUser.objects.filter(email=email).first()
@@ -124,6 +126,8 @@ class PasswordResetRequestView(APIView):
 
 # 비밀번호 재설정
 class PasswordResetConfirmView(APIView):
+    permission_classes = []
+
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
         new_password1 = request.data.get("new_password1")
