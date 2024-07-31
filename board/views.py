@@ -112,7 +112,7 @@ class RecommendView(APIView):
                 recommendations.extend(random.sample(TODO_RECOMMENDATIONS[word], min(len(TODO_RECOMMENDATIONS[word]), 3)))
         
         # 기본 추천 추가
-        recommendations.extend(random.sample(TODO_RECOMMENDATIONS['기본추천'], 3))
+        recommendations.extend(random.sample(TODO_RECOMMENDATIONS['기본추천'], 6))
 
         # 중복 제거 후 추천 리스트 생성
         existing_actions = set(entry.action_detail for entry in journal_entries if entry.action_detail)
