@@ -62,6 +62,9 @@ class Ending(models.Model):
 
 
 class DiaryEntry(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )  # 유저 필드 추가
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     date = models.DateField(default=datetime.date.today)
     weather = models.CharField(max_length=100, null=True, blank=True)  # 날씨 필드 추가
@@ -69,3 +72,15 @@ class DiaryEntry(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.character.name}"
+
+
+class Food(models.Model):
+    name = models.CharField(max_length=255)
+
+
+class CleaningSpot(models.Model):
+    name = models.CharField(max_length=255)
+
+
+class WalkingPlace(models.Model):
+    name = models.CharField(max_length=255)

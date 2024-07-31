@@ -13,3 +13,4 @@ media
 
 **/migrations/**_initial.py
 venv/
+.venv/
