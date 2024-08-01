@@ -93,7 +93,7 @@ def like_post(request, pk):
                 notification = Notification.objects.create(
                     user=post.author,
                     post=post,
-                    message=f"{user.username}님이 '{post.title}' 글을 좋아합니다."
+                    message=f"{user.username}님이 '{post.content}' 글을 좋아합니다."
                 )
                 logger.info(f"알림 생성: {notification.message} (ID: {notification.id})")
             except Exception as e:

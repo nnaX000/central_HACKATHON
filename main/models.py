@@ -12,4 +12,4 @@ class Notification(models.Model):
     read = models.BooleanField(default=False)
     
     def __str__(self):
-        return f"Notification for {self.user.username} on {self.post.title if self.post else 'No Post'}"
+        return f"Notification for {self.user.username} on {self.post.id if self.post else 'No Post'}"
