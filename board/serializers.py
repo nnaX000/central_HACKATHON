@@ -24,5 +24,5 @@ class LifeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LifeList
-        fields = ['id', 'user', 'goal', 'description', 'target_date', 'target_time', 'completed', 'created_at', 'updated_at']
-
+        fields = '__all__'
+        read_only_fields = ['user']

@@ -1,13 +1,22 @@
 from rest_framework import serializers
 from .models import Post, Notification
+from user.models import CustomUser
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    profile_image = serializers.ImageField(source='profile_image.url', read_only=True)  # Assuming 'profile_image' is the field name for profile images in UserProfile model.
+
+    class Meta:
+        model = CustomUser
+        fields = ['profile_image']
 
 class PostSerializer(serializers.ModelSerializer):
+    author_profile = UserProfileSerializer(source='author.userprofile', read_only=True)
     likes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     total_likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'image', 'date_posted', 'author', 'likes', 'total_likes']
+        fields = ['id', 'content', 'image', 'date_posted', 'author',  'author_profile', 'likes', 'total_likes']
         read_only_fields = ['author', 'date_posted']
 
     def get_total_likes(self, obj):
