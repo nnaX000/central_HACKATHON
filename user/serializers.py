@@ -21,10 +21,17 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
+            "photo",
             "photo_url",
             "profile",
         ]  # photo_url 필드를 추가
         extra_kwargs = {"password": {"write_only": True}}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # context에서 'exclude_photo'가 True인 경우 'photo' 필드를 제외
+        if self.context.get("exclude_photo", False):
+            self.fields.pop("photo")
 
     def get_photo_url(self, obj):
         request = self.context.get("request")
