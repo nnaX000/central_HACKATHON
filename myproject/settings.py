@@ -160,11 +160,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 # 미디어 파일 설정
-MEDIA_URL = "/myproject/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "myproject/media")
-
-STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # 데이터베이스 설정
 DATABASES = {

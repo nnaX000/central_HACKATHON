@@ -29,7 +29,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def get_photo_url(self, obj):
         request = self.context.get("request")
         if obj.photo and hasattr(obj.photo, "url"):
-            return request.build_absolute_uri("/myproject" + obj.photo.url)
+            return request.build_absolute_uri(obj.photo.url)
         return None
 
     def create(self, validated_data):
