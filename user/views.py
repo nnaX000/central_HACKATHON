@@ -238,5 +238,5 @@ class UserDetailView(APIView):
 
     def get(self, request):
         user = request.user
-        serializer = CustomUserSerializer(user)
+        serializer = CustomUserSerializer(user, context={"request": request})
         return Response(serializer.data, status=200)

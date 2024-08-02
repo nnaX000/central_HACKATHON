@@ -11,11 +11,26 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(required=False)
+    photo_url = serializers.SerializerMethodField()  # 추가된 부분
 
     class Meta:
         model = CustomUser
-        fields = ["id", "user_id", "username", "email", "password", "photo", "profile"]
+        fields = [
+            "id",
+            "user_id",
+            "username",
+            "email",
+            "password",
+            "photo_url",
+            "profile",
+        ]  # photo_url 필드를 추가
         extra_kwargs = {"password": {"write_only": True}}
+
+    def get_photo_url(self, obj):
+        request = self.context.get("request")
+        if obj.photo and hasattr(obj.photo, "url"):
+            return request.build_absolute_uri(obj.photo.url)
+        return None
 
     def create(self, validated_data):
         profile_data = validated_data.pop("profile", None)
