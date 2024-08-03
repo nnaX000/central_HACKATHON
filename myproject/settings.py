@@ -25,7 +25,8 @@ SECRET_KEY = "django-insecure-4cf3e#)yd1&69y*nn95d3c(j^!*g1elk40jsre5m=uj57*jc$+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '3.25.237.92']
 
 AUTH_USER_MODEL = "user.CustomUser"
 
@@ -33,6 +34,7 @@ AUTH_USER_MODEL = "user.CustomUser"
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -67,7 +69,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "myproject.urls"
 
@@ -160,8 +166,11 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 # 미디어 파일 설정
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/myproject/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "myproject/media")
+
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # 데이터베이스 설정
 DATABASES = {

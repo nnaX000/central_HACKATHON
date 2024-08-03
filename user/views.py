@@ -238,5 +238,7 @@ class UserDetailView(APIView):
 
     def get(self, request):
         user = request.user
-        serializer = CustomUserSerializer(user)
+        serializer = CustomUserSerializer(
+            user, context={"request": request, "exclude_photo": True}
+        )
         return Response(serializer.data, status=200)

@@ -11,11 +11,34 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(required=False)
+    photo_url = serializers.SerializerMethodField()  # 추가된 부분
 
     class Meta:
         model = CustomUser
-        fields = ["id", "user_id", "username", "email", "password", "photo", "profile"]
+        fields = [
+            "id",
+            "user_id",
+            "username",
+            "email",
+            "password",
+            "photo",
+            "photo_url",
+            "profile",
+        ]  # photo_url 필드를 추가
         extra_kwargs = {"password": {"write_only": True}}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # context에서 'exclude_photo'가 True인 경우 'photo' 필드를 제외
+        if self.context.get("exclude_photo", False):
+            self.fields.pop("photo")
+
+    def get_photo_url(self, obj):
+        request = self.context.get("request")
+        if obj.photo and hasattr(obj.photo, "url"):
+            # 'myproject'를 경로에 추가
+            return request.build_absolute_uri("/myproject" + obj.photo.url)
+        return None
 
     def create(self, validated_data):
         profile_data = validated_data.pop("profile", None)
