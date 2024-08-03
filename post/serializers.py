@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Post, Notification
+from .models import Post
+from main.models import Notification 
 from user.models import CustomUser
 
 class UserProfileSerializer(serializers.ModelSerializer):

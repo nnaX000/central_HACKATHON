@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Post, Notification, UserProfile
+from .models import Post, UserProfile
+from main.models import Notification
+
 
 admin.site.register(Post)
 admin.site.register(Notification)

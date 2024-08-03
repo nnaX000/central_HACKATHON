@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .models import Post, Notification, UserProfile
+from post.models import Post, UserProfile  
+from main.models import Notification
 from .serializers import PostSerializer, NotificationSerializer
 from django.core.exceptions import PermissionDenied
 
@@ -73,7 +74,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def like_post(request, pk):
@@ -87,11 +87,12 @@ def like_post(request, pk):
         post.likes.add(user)
         liked = True
 
-        # 좋아요 알림 생성
+        # 좋아요 알람 생성
         if user != post.author:
             try:
                 notification = Notification.objects.create(
-                    user=post.author,
+                    recipient=post.author,
+                    sender=user,
                     post=post,
                     message=f"{user.username}님이 '{post.content}' 글을 좋아합니다."
                 )
@@ -104,6 +105,7 @@ def like_post(request, pk):
         'liked': liked,
         'total_likes': post.likes.count(),
     })
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -123,8 +125,13 @@ def post_detail(request, pk):
 @permission_classes([IsAuthenticated])
 def notifications(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    if notifications.exists():
+        logger.info(f"{request.user.username}의 알림 목록: {notifications}")
+    else:
+        logger.info(f"{request.user.username}의 알림이 없습니다.")
     serializer = NotificationSerializer(notifications, many=True)
     return Response(serializer.data)
+
 
 
 @api_view(['POST'])

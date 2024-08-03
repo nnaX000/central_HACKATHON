@@ -31,12 +31,22 @@ def combined_list_view(request):
         'lifelist': lifelist_serializer.data
     })
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def notifications(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    if notifications.exists():
+        logger.info(f"{request.user.username}의 알림 목록: {notifications}")
+    else:
+        logger.info(f"{request.user.username}의 알림이 없습니다.")
     serializer = NotificationSerializer(notifications, many=True)
     return Response(serializer.data)
+
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
