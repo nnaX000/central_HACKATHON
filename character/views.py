@@ -468,3 +468,35 @@ class UserActivityDatesAPIView(APIView):
         sorted_dates = sorted(dates)
 
         return Response(sorted_dates)
+
+
+class CharacterDayRecordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, character_id, date):
+        character = get_object_or_404(Character, id=character_id, user=request.user)
+
+        try:
+            date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            return Response(
+                {"error": "Invalid date format. Use YYYY-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        day_data = {
+            "date": date_obj.strftime("%Y-%m-%d"),
+            "day": date_obj.strftime("%A"),
+            "meals": {"breakfast": "", "lunch": "", "dinner": "", "snack": ""},
+        }
+
+        journal_entries = JournalEntry.objects.filter(
+            character=character, date=date_obj
+        )
+
+        for entry in journal_entries:
+            if entry.action_type == "eat":
+                if entry.meal_time:
+                    day_data["meals"][entry.meal_time] = entry.action_detail
+
+        return Response(day_data, status=status.HTTP_200_OK)

@@ -56,6 +56,7 @@ from character.views import (
     KeywordRecommendationView,
     CharacterJournalDetailView,
     UserActivityDatesAPIView,
+    CharacterDayRecordView,
 )
 from post.views import PostViewSet
 from rest_framework.routers import DefaultRouter
@@ -150,6 +151,11 @@ urlpatterns = [
         "user-activity-dates/",
         UserActivityDatesAPIView.as_view(),
         name="user-activity-dates",
+    ),
+    path(
+        "characters/<int:character_id>/records/<str:date>/",
+        CharacterDayRecordView.as_view(),
+        name="character-day-record",
     ),
     # ---------------------------------------------------------------------------------
     # post
