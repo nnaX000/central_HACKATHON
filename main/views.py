@@ -51,7 +51,12 @@ def notifications(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_notification_as_read(request, pk):
-    notification = get_object_or_404(Notification, pk=pk, user=request.user)
+    try:
+        notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
+    except Exception as e:
+        logger.error(f"Error fetching notification: {e}")
+        return Response({'error': 'Notification not found or not authorized.'}, status=status.HTTP_404_NOT_FOUND)
+    
     notification.read = True
     notification.save()
     return Response({'message': 'Notification marked as read'}, status=status.HTTP_200_OK)
