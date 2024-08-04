@@ -487,16 +487,19 @@ class CharacterDayRecordView(APIView):
         day_data = {
             "date": date_obj.strftime("%Y-%m-%d"),
             "day": date_obj.strftime("%A"),
-            "meals": {"breakfast": "", "lunch": "", "dinner": "", "snack": ""},
+            "meals": {
+                "breakfast": [],
+                "lunch": [],
+                "dinner": [],
+                "snack": []
+            }
         }
 
-        journal_entries = JournalEntry.objects.filter(
-            character=character, date=date_obj
-        )
+        journal_entries = JournalEntry.objects.filter(character=character, date=date_obj)
 
         for entry in journal_entries:
             if entry.action_type == "eat":
                 if entry.meal_time:
-                    day_data["meals"][entry.meal_time] = entry.action_detail
+                    day_data["meals"][entry.meal_time].append(entry.action_detail)
 
         return Response(day_data, status=status.HTTP_200_OK)
