@@ -14,12 +14,16 @@ class PostSerializer(serializers.ModelSerializer):
     author_profile = UserProfileSerializer(source='author.userprofile', read_only=True)
     likes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     total_likes = serializers.SerializerMethodField()
+    author_username = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'image', 'date_posted', 'author',  'author_profile', 'likes', 'total_likes']
+        fields = ['id', 'content', 'image', 'date_posted', 'author_username',  'author_profile', 'likes', 'total_likes']
         read_only_fields = ['author', 'date_posted']
 
+    def get_author_username(self, obj):
+        return obj.author.username 
+    
     def get_total_likes(self, obj):
         return obj.likes.count()
 
