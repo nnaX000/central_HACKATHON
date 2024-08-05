@@ -316,48 +316,48 @@ class CharacterJournalDetailView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        journal_entries = JournalEntry.objects.filter(
-            character__user_id=int(user_id), date=date_obj
-        )
-        # character__user_id와 date로 필터링
-        diary_entries = DiaryEntry.objects.filter(
-            character__user_id=int(user_id), date=date_obj
-        )
+        try:
+            journal_entries = JournalEntry.objects.filter(
+                character__user_id=int(user_id), date=date_obj
+            )
+            diary_entries = DiaryEntry.objects.filter(
+                character__user_id=int(user_id), date=date_obj
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Database error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         day_data = {
             "date": date,
-            "day": date_obj.strftime("%A"),  # 요일을 날짜로부터 계산
-            "weather": "",  # 날씨는 사용자가 입력하도록 설계해야 함
-            "meals": {"breakfast": "", "lunch": "", "dinner": "", "snack": ""},
-            "records": {"cleaning": "", "exercise": "", "shower": ""},
+            "day": date_obj.strftime("%A"),
+            "weather": "",
+            "meals": {"breakfast": [], "lunch": [], "dinner": [], "snack": []},
+            "records": {"cleaning": [], "exercise": [], "shower": []},
             "diary": "",
         }
 
         for entry in journal_entries:
             if entry.action_type == "eat":
                 if entry.meal_time:
-                    day_data["meals"][entry.meal_time] = entry.action_detail
+                    day_data["meals"][entry.meal_time].append(entry.action_detail)
             elif entry.action_type == "cleaning":
-                day_data["records"]["cleaning"] = entry.action_detail
+                day_data["records"]["cleaning"].append(entry.action_detail)
             elif entry.action_type == "walk":
-                day_data["records"]["exercise"] = entry.action_detail
+                day_data["records"]["exercise"].append(entry.action_detail)
             elif entry.action_type == "wash":
-                day_data["records"]["shower"] = {
+                day_data["records"]["shower"].append({
                     "completed": entry.completed,
-                }
+                })
 
         if diary_entries.exists():
-            diary_entry = diary_entries.order_by("-id").first()  # 최신 항목을 가져옴
+            diary_entry = diary_entries.order_by("-id").first()
             day_data["weather"] = diary_entry.weather
             day_data["diary"] = diary_entry.diary_text
 
-        # 디버깅 메시지 추가
-        print(f"Date: {date_obj}")
-        print(f"Journal Entries: {journal_entries}")
-        print(f"Diary Entries: {diary_entries}")
-        print(f"Day Data: {day_data}")
-
         return Response(day_data, status=status.HTTP_200_OK)
+
 
 
 class RandomRecommendationView(APIView):
