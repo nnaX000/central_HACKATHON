@@ -230,44 +230,45 @@ class DiaryEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
         return DiaryEntry.objects.filter(character__user=self.request.user)
 
 
-class CharacterEndingView(APIView):
+class CharacterEndView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         character = get_object_or_404(Character, user=request.user, active=True)
         character.ended = True
         character.active = False
         character.save()
 
-        journal_entries = JournalEntry.objects.filter(character=character).order_by(
-            "date"
-        )
+        return Response({"message": "Character has been ended."}, status=status.HTTP_200_OK)
+
+class CharacterEndingListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        character_id = kwargs.get("character_id")
+        character = get_object_or_404(Character, id=character_id, user=request.user)
+
+        journal_entries = JournalEntry.objects.filter(character=character).order_by("date")
         diary_entries = DiaryEntry.objects.filter(character=character).order_by("date")
 
         # 날짜별 최신 다이어리 항목을 저장할 딕셔너리
         latest_diary_entries = {}
         for diary in diary_entries:
             date = diary.date
-            if (
-                date not in latest_diary_entries
-                or diary.pk > latest_diary_entries[date].pk
-            ):
+            if date not in latest_diary_entries or diary.pk > latest_diary_entries[date].pk:
                 latest_diary_entries[date] = diary
 
         data = []
-        for date in sorted(
-            set(entry.date for entry in journal_entries)
-            | set(entry.date for entry in diary_entries)
-        ):
+        for date in sorted(set(entry.date for entry in journal_entries) | set(entry.date for entry in diary_entries)):
             day_data = {
                 "date": date.strftime("%Y-%m-%d"),
                 "day": date.strftime("%A"),
                 "weather": "맑음",  # 날씨는 사용자가 입력하도록 설계해야 함
-                "meals": {"breakfast": "", "lunch": "", "dinner": "", "snack": ""},
+                "meals": {"breakfast": [], "lunch": [], "dinner": [], "snack": []},
                 "records": {
-                    "cleaning": "",
-                    "exercise": "",
-                    "shower": {"completed": False},
+                    "cleaning": [],
+                    "exercise": [],
+                    "shower": []
                 },
                 "diary": "",
             }
@@ -275,15 +276,15 @@ class CharacterEndingView(APIView):
             for entry in journal_entries.filter(date=date):
                 if entry.action_type == "eat":
                     if entry.meal_time:
-                        day_data["meals"][entry.meal_time] = entry.action_detail
+                        day_data["meals"][entry.meal_time].append(entry.action_detail)
                 elif entry.action_type == "cleaning":
-                    day_data["records"]["cleaning"] = entry.action_detail
+                    day_data["records"]["cleaning"].append(entry.action_detail)
                 elif entry.action_type == "walk":
-                    day_data["records"]["exercise"] = entry.action_detail
+                    day_data["records"]["exercise"].append(entry.action_detail)
                 elif entry.action_type == "wash":
-                    day_data["records"]["shower"] = {
+                    day_data["records"]["shower"].append({
                         "completed": entry.completed,
-                    }
+                    })
 
             # 각 날짜별로 최신 다이어리 항목 추가
             if date in latest_diary_entries:
@@ -293,7 +294,7 @@ class CharacterEndingView(APIView):
 
             data.append(day_data)
 
-        return Response(data)
+        return Response(data, status=status.HTTP_200_OK)
 
 
 # 기록장에서 날짜 클릭했을때 상세정보

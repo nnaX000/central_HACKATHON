@@ -51,12 +51,13 @@ from character.views import (
     EndingDetailView,
     DiaryEntryListCreateView,
     DiaryEntryDetailView,
-    CharacterEndingView,
     RandomRecommendationView,
     KeywordRecommendationView,
     CharacterJournalDetailView,
     UserActivityDatesAPIView,
     CharacterDayRecordView,
+    CharacterEndView, CharacterEndingListView
+    
 )
 from post.views import PostViewSet
 from rest_framework.routers import DefaultRouter
@@ -131,7 +132,11 @@ urlpatterns = [
         DiaryEntryDetailView.as_view(),
         name="diary-entry-detail",
     ),
-    path("character/ending/", CharacterEndingView.as_view(), name="character-ending"),
+    # 캐릭터 소멸 API
+    path('characters/end/', CharacterEndView.as_view(), name='character-end'),
+    
+    # 캐릭터 엔딩 조회 API
+    path('characters/<int:character_id>/ending/', CharacterEndingListView.as_view(), name='character-ending-list'),
     path(
         "recommendations/random/",
         RandomRecommendationView.as_view(),
