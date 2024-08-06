@@ -5,7 +5,7 @@ from user.models import CustomUser
 from django.conf import settings
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    profile_image = serializers.ImageField(source='profile_image.url', read_only=True)  # Assuming 'profile_image' is the field name for profile images in UserProfile model.
+    profile_image = serializers.ImageField(source='user.photo', read_only=True)  # Assuming 'profile_image' is the field name for profile images in UserProfile model.
 
     class Meta:
         model = CustomUser
@@ -16,7 +16,7 @@ class PostSerializer(serializers.ModelSerializer):
     likes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     total_likes = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
-    image = serializers.ImageField(use_url=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
