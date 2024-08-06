@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-4cf3e#)yd1&69y*nn95d3c(j^!*g1elk40jsre5m=uj57*jc$+
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '3.25.237.92']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','dreamcatcherrr.store', 'www.dreamcatcherrr.store','3.25.237.92']
 
 AUTH_USER_MODEL = "user.CustomUser"
 
@@ -73,7 +73,34 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "https://dreamcatcherrr.store",
+    "https://www.dreamcatcherrr.store",
+    "https://sae--dreamcatcher2024.netlify.app",
+]
+
+# 추가로 필요하다면 허용할 메소드와 헤더를 설정할 수 있습니다.
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 ROOT_URLCONF = "myproject.urls"
 
@@ -235,3 +262,16 @@ LOGGING = {
         "level": "DEBUG",
     },
 }
+
+# settings.py
+
+# 기존 설정 파일의 끝 부분에 추가
+SECURE_SSL_REDIRECT = True  # HTTP 요청을 HTTPS로 리디렉션
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 프록시 뒤에 HTTPS 사용
+
+# Session 및 CSRF 쿠키 보안 설정
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+ALLOWED_HOSTS = ['dreamcatcherrr.store', 'www.dreamcatcherrr.store', '3.25.237.92']
+
