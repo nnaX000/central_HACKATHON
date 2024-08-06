@@ -265,13 +265,13 @@ LOGGING = {
 
 # settings.py
 
-# 기존 설정 파일의 끝 부분에 추가
-SECURE_SSL_REDIRECT = True  # HTTP 요청을 HTTPS로 리디렉션
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 프록시 뒤에 HTTPS 사용
+# # 기존 설정 파일의 끝 부분에 추가
+# SECURE_SSL_REDIRECT = True  # HTTP 요청을 HTTPS로 리디렉션
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 프록시 뒤에 HTTPS 사용
 
-# Session 및 CSRF 쿠키 보안 설정
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# # Session 및 CSRF 쿠키 보안 설정
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
 
-ALLOWED_HOSTS = ['dreamcatcherrr.store', 'www.dreamcatcherrr.store', '3.25.237.92']
+ALLOWED_HOSTS = ['dreamcatcherrr.store', 'www.dreamcatcherrr.store', '3.25.237.92','127.0.0.1', 'localhost']
 
