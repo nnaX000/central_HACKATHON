@@ -16,7 +16,4 @@ urlpatterns = [
     path('<int:pk>/', views.post_detail, name='post_detail'),
     path('report_post/<int:pk>/', views.report_post, name='report-post'),
      
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
