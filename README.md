@@ -1,6 +1,6 @@
 # DREAM CATCHER
 
-🦁 멋쟁이 사자처럼 12기 중앙해커톤 성신여대 2팀 드림파트너 백앤드 페이지
+🦁 멋쟁이 사자처럼 12기 중앙해커톤 성신여대 2팀 백앤드 페이지
 
 ## Project Introduction
 
@@ -1173,5 +1173,5 @@ Authorization: Bearer <access_token>
 
 ## Collaborators
 
-- **Collaborator 1** - [GitHub Profile]([https://github.com/collaborator1](https://github.com/nnaX000/))
-- **Collaborator 2** - [GitHub Profile]([https://github.com/collaborator2](https://github.com/suncastle023))
+- **Collaborator 1** - [GitHub Profile]((https://github.com/nnaX000/))
+- **Collaborator 2** - [GitHub Profile]((https://github.com/suncastle023))
