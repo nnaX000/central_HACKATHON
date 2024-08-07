@@ -1173,5 +1173,6 @@ Authorization: Bearer <access_token>
 
 ## Collaborators
 
-- **Collaborator 1** - [GitHub Profile]((https://github.com/nnaX000/))
-- **Collaborator 2** - [GitHub Profile]((https://github.com/suncastle023))
+- **Collaborator 1** - [GitHub Profile](https://github.com/nnaX000/)
+
+- **Collaborator 2** - [GitHub Profile](https://github.com/suncastle023)
